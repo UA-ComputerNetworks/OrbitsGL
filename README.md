@@ -10,7 +10,7 @@ Arbitrary satellite orbits can be handled by either SGP4 propagation of NORAD tw
 The implementation currently does not store TLEs so they must be downloaded from sources such as [CelesTrak](https://celestrak.com/NORAD/elements/). TLEs must be pasted to the dialog available from the main menu. 
 
 Click below to execute in browser.
-[![Screenshot.](scrshot.png)](https://vsr83.github.io/OrbitsGL/)
+[![Screenshot.](scrshot.png)](https://UA-ComputerNetworks.github.io/OrbitsGL/)
 
 # Initialization of an Orbit for arbitrary satellites.
 
