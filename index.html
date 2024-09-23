@@ -12,13 +12,36 @@
         <canvas id="canvas"></canvas>
         <canvas id="canvasJs"></canvas>
 
-        <div id="TLEcontainer">
+        <!-- Original. -->
+
+        <!-- <div id="TLEcontainer">
             <label for="TLEinput">Paste 3-line TLE below:</label><br>
             <a href="https://celestrak.com/NORAD/elements/" target="_blank"> See CelesTrak for available TLEs.</a>
             <textarea id="TLEinput" rows="3" cols="69"></textarea>
             <button id="TLEEnter">Enter</button>
             <button id="TLECancel">Cancel</button>
+        </div> -->
+
+        <div id="TLEcontainer">
+            <label for="TLEinput">Paste 3-line TLE below or select a file:</label><br>
+            <a href="https://celestrak.com/NORAD/elements/" target="_blank"> See CelesTrak for available TLEs.</a>
+            
+            <!-- Textarea for pasting TLE -->
+            <textarea id="TLEinput" rows="3" cols="69" placeholder="Paste TLE here"></textarea><br><br>
+            
+            <!-- File input for selecting a TLE file -->
+            <label for="TLEfile">Or select a TLE file:</label>
+            <input type="file" id="TLEfile" accept=".txt" /><br><br>
+            
+            <!-- Action buttons -->
+            <button id="TLEEnter">Enter</button>
+            <button id="TLECancel">Cancel</button>
+            
+            <!-- Area to display file contents -->
+            <div id="fileContents"></div>
         </div>
+
+
         <div id="TLEListcontainer">
             <label for="TLEListinput">Paste a list of 3-line TLEs below:</label><br>
             <a href="https://celestrak.com/NORAD/elements/" target="_blank"> See CelesTrak for available TLEs.</a>
