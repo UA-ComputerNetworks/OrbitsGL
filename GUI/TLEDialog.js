@@ -17,7 +17,7 @@ TLEEnter.onclick = function () {
     reader.onload = function (event) {
       const fileContent = event.target.result
       console.log('File content:', fileContent) // Debugging: log file content to ensure it's read correctly
-      processTLE(fileContent) // Ensure we only process after file is fully read
+      processTLE2(fileContent) // Ensure we only process after file is fully read
     }
 
     // Read the file as text
@@ -63,6 +63,7 @@ function processTLE(tleIn) {
     window.alert('Not enough lines.')
   }
 }
+
 TLECancel.onclick = function () {
   const TLEcontainer = document.getElementById('TLEcontainer')
   TLEcontainer.style.visibility = 'hidden'
