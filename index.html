@@ -23,7 +23,7 @@
             <label for="TLEListinput">Paste a list of 3-line TLEs below:</label><br>
             <a href="https://celestrak.com/NORAD/elements/" target="_blank"> See CelesTrak for available TLEs.</a>
             <textarea id="TLEListinput" rows="10" cols="69"></textarea>
-            
+
             <!-- Adding file input -->
             <label for="TLEFileInput">Or select a file with TLE data:</label><br>
             <input type="file" id="TLEFileInput"><br>
@@ -33,12 +33,23 @@
         </div>
 
         <div id="TLESelectcontainer">
-            <label for="TLESelectinput">Select TLE from the list of satellites below:</label>
+            <!-- <label for="TLESelectinput">Select TLE from the list of satellites below:</label>
             <br>
             <select id="TLESelectlist" size="0">
             </select>
             <button id="TLESelectEnter">Select</button>
+            <button id="TLESelectCancel">Cancel</button> -->
+
+            <!-- File input to upload satellite data (name and color) -->
+            <input type="file" id="SatelliteFileInput" accept=".txt">
+            <!-- Select list for satellite names with multi-selection enabled -->
+            <select id="TLESelectlist" multiple size="10"></select>
+            <!-- Buttons for entering and canceling selection -->
+            <button id="TLESelectEnter">Enter</button>
             <button id="TLESelectCancel">Cancel</button>
+
+            
+            
         </div>
     </div>
     <div id="autoCompleteContainer">
