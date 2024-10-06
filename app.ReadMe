@@ -1,0 +1,159 @@
+# OrbitsGL Project Documentation
+
+## Introduction
+
+OrbitsGL is a WebGL-based application designed to simulate and visualize satellite orbits around the Earth. This project makes use of TLE (Two-Line Element) data for propagating satellite orbits and rendering them in 3D using WebGL. It also integrates with **SGP4** for orbit prediction, along with several graphical user interface (GUI) controls for interacting with and observing satellite behavior.
+
+The primary goal of this application is to provide real-time satellite tracking and orbit visualization with the ability to propagate orbits over time and interact with various satellite parameters.
+
+## Global Variables
+
+```js
+var gl = null;
+var earthShaders = null;
+var lineShaders = null;
+var pointShaders = null;
+
+gl: WebGL rendering context used for drawing scenes.
+	•	earthShaders: Shader program for rendering the Earth.
+	•	lineShaders: Shader program for rendering satellite orbits.
+	•	pointShaders: Shader program for rendering satellite points.
+
+var tleLine1 = '1 25544U 98067A ...';
+var tleLine2 = '2 25544 ...';
+
+tleLine1 & tleLine2: Two-Line Element (TLE) data for the International Space Station (ISS) or another satellite.
+
+var satrec = sgp4.tleFromLines([...]);
+
+	satrec: Satellite record initialized from the TLE data using the SGP4 propagation library.
+
+Functions Overview
+
+drawScene(time)
+
+Description:
+Renders the 3D scene based on the current time and satellite positions. The function is responsible for propagating satellite positions, rendering the Earth, satellites, and other celestial objects.
+
+Parameters:
+
+	•	time: Current simulation time.
+Usage Example:
+
+requestAnimationFrame(drawScene);
+
+
+
+createOsv(today)
+
+Description:
+Generates an OSV (Orbital State Vector) from the selected data source, such as TLE, OEM, telemetry, or GUI input.
+
+Parameters:
+
+	•	today: Current date to generate the OSV for.
+
+Returns:
+
+	•	Orbital state vector for the specified date.
+
+Usage Example:
+
+let osv = createOsv(new Date());
+console.log(osv.position, osv.velocity);
+
+
+
+createViewMatrix()
+
+Description:
+Generates the view matrix for the camera based on current rotations, zoom levels, and the user’s interaction.
+
+Returns:
+
+	•	A view matrix that defines the camera’s position and perspective.
+
+Usage Example:
+
+let viewMatrix = createViewMatrix();
+
+drawEarth(matrix, rASun, declSun, LST, JT, nutPar)
+
+Description:
+Draws the Earth onto the WebGL canvas. Applies necessary transformations for positioning, shading, and rendering based on the sun’s position and the local sidereal time.
+
+Parameters:
+
+	•	matrix: The view matrix for rendering.
+	•	rASun: Right Ascension of the Sun.
+	•	declSun: Declination of the Sun.
+	•	LST: Local Sidereal Time.
+	•	JT: Julian Time.
+	•	nutPar: Nutation parameters.
+
+Usage Example:
+
+drawEarth(viewMatrix, sunRA, sunDecl, siderealTime, julianTime, nutationParams);
+
+
+
+drawOrbit(today, matrix, kepler_updated, nutPar)
+
+Description:
+Draws satellite orbits based on Keplerian elements and propagates them over time.
+
+Parameters:
+
+	•	today: Current date.
+	•	matrix: View matrix.
+	•	kepler_updated: Keplerian elements of the satellite’s orbit.
+	•	nutPar: Nutation parameters.
+
+Usage Example:
+
+drawOrbit(new Date(), viewMatrix, keplerElements, nutationParams);
+
+drawSun(lonlat, JT, JD, rASun, declSun, matrix, nutPar)
+
+Description:
+Draws the Sun’s position on the WebGL canvas. Calculates the current position of the Sun relative to Earth and displays it.
+
+Parameters:
+
+	•	lonlat: Longitude and latitude of the Sun.
+	•	JT: Julian Time.
+	•	JD: Julian Date.
+	•	rASun: Right Ascension of the Sun.
+	•	declSun: Declination of the Sun.
+	•	matrix: The view matrix.
+	•	nutPar: Nutation parameters.
+
+Usage Example:
+
+drawSun(sunLonLat, julianTime, julianDate, sunRA, sunDecl, viewMatrix, nutationParams);
+
+checkIntersection(source, target, radius)
+
+Description:
+Checks for intersections between the satellite and the Earth. This function is primarily used for visibility calculations to determine if a satellite is obstructed by the Earth.
+
+Parameters:
+
+	•	source: Camera position.
+	•	target: Satellite position.
+	•	radius: Radius of the Earth.
+
+Returns:
+
+	•	True if the satellite is behind the Earth; False otherwise.
+
+Usage Example:
+
+let isVisible = checkIntersection(cameraPos, satPos, earthRadius);
+
+Key Components
+
+	•	SGP4 Library: Used for propagating satellite orbits from TLE data.
+	•	WebGL: WebGL is used for rendering 3D content like Earth, satellite orbits, and other celestial objects.
+	•	GUI Controls: The interface allows users to manipulate time, satellite positions, and view parameters.
+	•	Coordinate Systems: The application switches between multiple coordinate systems, including ECEF (Earth-Centered, Earth-Fixed) and J2000 for orbital calculations.
