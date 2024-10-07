@@ -335,48 +335,6 @@ function drawScene(time) {
     drawOrbit(today, matrix, kepler_updated, nutPar)
   }
 
-  if (enableList && selectedSatellites.length > 0) {
-    // Prepare satellite positions for rendering
-    let pointsOut = []
-    let colorsOut = []
-
-    selectedSatellites.forEach((targetName) => {
-      const satIndex = satNameToIndex[targetName]
-      const satellite = satellites[satIndex]
-
-      // Propagate satellite position
-      let osvTeme
-      try {
-        osvTeme = sgp4.propagateTargetTs(satellite, today, 10.0)
-      } catch (err) {
-        console.error(`Error propagating satellite ${targetName}:`, err)
-        return
-      }
-
-      const posEci = osvTeme.r
-      const velEci = osvTeme.v
-
-      if (typeof posEci !== 'undefined') {
-        // Add satellite position for rendering
-        pointsOut.push(MathUtils.vecmul(posEci, 0.001)) // Convert to km
-
-        // Set satellite color
-        const color = satelliteColorMap[targetName] || [255, 255, 255] // Default to white
-        colorsOut.push(color)
-      }
-
-      // Draw orbit for this satellite
-      if (guiControls.enableOrbit) {
-        drawOrbitForSatellite(satellite, satelliteColorMap[targetName], matrix)
-      }
-    })
-
-    // Render satellites with their respective colors
-    pointShaders.setGeometry(pointsOut)
-    pointShaders.setColors(colorsOut) // Assuming `setColors` is implemented in your shaders
-    pointShaders.draw(matrix)
-  }
-
   let rotMatrixTeme
   if (enableList) {
     // Performance : It is significantly faster to perform the J2000->ECEF coordinate
@@ -937,36 +895,4 @@ function checkIntersection(source, target, radius) {
     return d < distance
   }
   return false
-}
-
-function drawOrbitForSatellite(satellite, color, matrix) {
-  console.log(
-    `Drawing orbit for satellite: ${satellite.name} with color: ${color}`
-  )
-
-  // Set up Keplerian elements for orbit drawing
-  const period = Kepler.computePeriod(satellite.kepler.a, satellite.kepler.mu)
-  const jdStep = period / guiControls.orbitPoints
-
-  let orbitPoints = []
-
-  for (let jdDelta = 0; jdDelta <= period; jdDelta += jdStep) {
-    const deltaDate = new Date(today.getTime() + 1000 * jdDelta)
-
-    // Propagate satellite to the current step in the orbit
-    let osvTeme
-    try {
-      osvTeme = sgp4.propagateTargetTs(satellite, deltaDate, 0.0)
-    } catch (err) {
-      continue // Skip if propagation fails
-    }
-
-    const posEci = osvTeme.r
-    orbitPoints.push(MathUtils.vecmul(posEci, 0.001)) // Convert to km
-  }
-
-  // Draw the orbit using line shaders
-  lineShaders.setGeometry(orbitPoints)
-  lineShaders.setColor(color) // Set orbit color
-  lineShaders.draw(matrix)
 }
