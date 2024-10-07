@@ -108,16 +108,37 @@ SelectEnter.onclick = function () {
   SelectContainer.style.visibility = 'hidden'
 }
 
-// Function to highlight the selected satellite in the rendering system
-function highlightSatellite(targetName, color) {
-  // Logic to highlight satellite in visualization (for example, by changing its color and size)
-  console.log(`Highlighting satellite: ${targetName} with color: ${color}`)
-  // Example: Modify the satellite node size and color using Orbits.js rendering
-  // drawSatelliteNode(targetName, size, color);  // Adjust this function based on your rendering system
-}
-
 // Function called when Cancel button is clicked
 SelectCancel.onclick = function () {
   SelectContainer.style.visibility = 'hidden'
   console.log('Satellite selection canceled.')
+}
+
+// Updated highlightSatellite function for multiple satellite highlighting
+function highlightSatellite(targetName, color, size = 1.5) {
+  console.log(
+    `Highlighting satellite: ${targetName} with color: ${color} and size: ${size}`
+  )
+
+  const satIndex = satNameToIndex[targetName]
+  const satellite = satellites[satIndex]
+
+  if (satellite) {
+    // This function should interact with Orbits.js rendering logic to adjust node size and color.
+    // Assuming there is a function `drawSatelliteNode` to handle the satellite rendering.
+    drawSatelliteNode(satellite, size, color)
+  } else {
+    console.error(`Satellite ${targetName} not found in satNameToIndex`)
+  }
+}
+
+function drawSatelliteNode(satellite, size, color) {
+  // Use shaders to draw the satellite with the specified size and color
+  // Adjust the node size and color in your rendering logic
+  console.log(
+    `Drawing satellite node for ${satellite.name} with size ${size} and color ${color}`
+  )
+
+  gl.uniform3fv(gl.getUniformLocation(pointShaderProgram, 'u_color'), color)
+  gl.uniform1f(gl.getUniformLocation(pointShaderProgram, 'u_size'), size)
 }

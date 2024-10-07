@@ -359,3 +359,264 @@ function checkIntersection(source, target, radius) {
     }
     return false;  // No intersection found
 }
+
+function drawScene(time) {
+    // 1. Check if necessary textures for Earth are loaded. If not, request to draw the scene later.
+    if (earthShaders.numTextures < 2) {
+        requestAnimationFrame(drawScene);
+        return;
+    }
+
+    // 2. Initialize ISS (International Space Station) with its current position and velocity data (OSV).
+    ISS.osv = ISS.osvIn;
+
+    // 3. Resize the canvas to the current screen size.
+    canvas.width = document.documentElement.clientWidth;
+    canvas.height = document.documentElement.clientHeight;
+
+    // 4. Use the Earth shaders program for rendering the Earth and satellite objects.
+    gl.useProgram(earthShaders.program);
+
+    // 5. Create a snapshot of the enabled satellite list from the GUI controls to prevent changes while rendering.
+    const enableList = guiControls.enableList;
+
+    // 6. Compute the current date and time. The time is adjusted based on whether time-warping is enabled.
+    let dateNow = new Date();
+    let today = null;
+
+    if (guiControls.timeWarp) {
+        // Time warping speeds up time in the simulation.
+        dateDelta += timeControls.warpSeconds.getValue() * 1000;
+    }
+
+    // 7. If real-time clock updates are disabled, manually set the date and time from the user interface (GUI).
+    if (!guiControls.enableClock) {
+        dateNow = new Date(guiControls.dateYear, parseInt(guiControls.dateMonth) - 1, guiControls.dateDay, 
+            guiControls.timeHour, guiControls.timeMinute, guiControls.timeSecond);
+
+        // Calculate a future time based on user input (deltaDays, deltaHours, etc.).
+        today = new Date(dateNow.getTime()
+            + 24 * 3600 * 1000 * guiControls.deltaDays
+            + 3600 * 1000 * guiControls.deltaHours
+            + 60 * 1000 * guiControls.deltaMins
+            + 1000 * guiControls.deltaSecs);
+    } else {
+        // Calculate the time with delta adjustments if real-time updates are enabled.
+        today = new Date(dateNow.getTime()
+            + 24 * 3600 * 1000 * guiControls.deltaDays
+            + 3600 * 1000 * guiControls.deltaHours
+            + 60 * 1000 * guiControls.deltaMins
+            + 1000 * guiControls.deltaSecs
+            + dateDelta);
+
+        // Update the time controls on the GUI to reflect the calculated time.
+        timeControls.yearControl.setValue(today.getFullYear());
+        timeControls.monthControl.setValue(today.getMonth() + 1);
+        timeControls.dayControl.setValue(today.getDate());
+        timeControls.hourControl.setValue(today.getHours());
+        timeControls.minuteControl.setValue(today.getMinutes());
+        timeControls.secondControl.setValue(today.getSeconds());
+    }
+
+    // 8. Create a new OSV (Orbital State Vector) for the ISS using the calculated time.
+    ISS.osv = createOsv(today);
+
+    // 9. Initialize an empty array to store propagated satellite positions.
+    let osvSatListTeme = [];
+    if (enableList) {
+        // If the satellite list is enabled, loop through all satellites.
+        for (let indSat = 0; indSat < satellites.length; indSat++) {
+            const sat = satellites[indSat];
+
+            // Propagate the satellite's orbital state vector using the SGP4 model for 10 seconds into the future.
+            let osvTeme;
+            try {
+                osvTeme = sgp4.propagateTargetTs(sat, today, 10.0);
+            } catch (err) {
+                continue; // Skip this satellite if there's an error.
+            }
+
+            // Check if the satellite's position (ECI coordinates) is available.
+            const posEci = osvTeme.r;
+            const velEci = osvTeme.v;
+
+            if (typeof posEci !== 'undefined') {
+                // Store the satellite's propagated position and velocity, converting from kilometers to meters.
+                let osvSat = {r: [osvTeme.r[0] * 1000.0, osvTeme.r[1] * 1000.0, osvTeme.r[2] * 1000.0], 
+                              v: [osvTeme.v[0] * 1000.0, osvTeme.v[1] * 1000.0, osvTeme.v[2] * 1000.0], 
+                              ts: today};
+                osvSatListTeme.push(osvSat); // Add to the list of satellites.
+            }
+        }
+    }
+
+    // 10. Compute the current Julian Date and Time, which is used for astronomical calculations.
+    const julianTimes = TimeConversions.computeJulianTime(today);
+    const JD = julianTimes.JD;
+    const JT = julianTimes.JT;
+    const T = (JT - 2451545.0) / 36525.0; // Compute centuries since the J2000 epoch.
+
+    // 11. Compute nutation parameters (a slight wobble in Earth's rotation) based on the time T.
+    const nutPar = Nutation.nutationTerms(T);
+
+    // 12. Compute the equatorial coordinates of the Sun and the Moon, which are used to render them in the scene.
+    const sunAltitude = new SunAltitude();
+    const eqCoordsSun = sunAltitude.computeEquitorial(JT, JD);
+    const rASun = eqCoordsSun.rA;  // Right Ascension of the Sun
+    const declSun = eqCoordsSun.decl;  // Declination of the Sun
+
+    const moonAltitude = new MoonAltitude();
+    const eqCoordsMoon = moonAltitude.computeEquitorial(JT);
+    const rAMoon = eqCoordsMoon.rA;  // Right Ascension of the Moon
+    const declMoon = eqCoordsMoon.decl;  // Declination of the Moon
+
+    // 13. Compute the Local Sidereal Time (LST) to determine the rotation of the Earth relative to the stars.
+    LST = MathUtils.deg2Rad(TimeConversions.computeSiderealTime(0, JD, JT, nutPar)) % 360.0;
+
+    // 14. If the Keplerian elements need to be fixed from the GUI, update them accordingly.
+    if (guiControls.keplerFix) {
+        osvControls.source.setValue('OSV');
+
+        ISS.kepler = {
+            a: guiControls.keplera * 1000.0,  // Semi-major axis (converted to meters)
+            mu: 3.986004418e14,  // Gravitational constant for Earth
+            ecc_norm: guiControls.keplere,  // Eccentricity
+            incl: guiControls.kepleri,  // Inclination
+            Omega: guiControls.keplerOmega,  // Longitude of ascending node
+            omega: guiControls.kepleromega,  // Argument of periapsis
+            M: guiControls.keplerM,  // Mean anomaly
+            ts: today  // Timestamp
+        };
+        // Compute the semi-minor axis based on the eccentricity and semi-major axis.
+        ISS.kepler.b = ISS.kepler.a * Math.sqrt(1.0 - ISS.kepler.ecc_norm * ISS.kepler.ecc_norm);
+    } else {
+        // Convert the Orbital State Vector (OSV) to Keplerian elements.
+        ISS.kepler = Kepler.osvToKepler(ISS.osv.r, ISS.osv.v, ISS.osv.ts);
+    }
+
+    // 15. If the source is "TLE" (Two-Line Element), no further propagation is needed.
+    if (guiControls.source === "TLE") {
+        ISS.osvProp = ISS.osv;
+    } else {
+        // Propagate the OSV using Keplerian elements.
+        ISS.osvProp = Kepler.propagate(ISS.kepler, today);
+        if (guiControls.keplerFix) {
+            // Update the GUI with the propagated OSV values.
+            osvControls.osvYear.setValue(ISS.osvProp.ts.getFullYear());
+            osvControls.osvMonth.setValue(ISS.osvProp.ts.getMonth() + 1);
+            osvControls.osvDay.setValue(ISS.osvProp.ts.getDate());
+            osvControls.osvHour.setValue(ISS.osvProp.ts.getHours());
+            osvControls.osvMinute.setValue(ISS.osvProp.ts.getMinutes());
+            osvControls.osvSecond.setValue(ISS.osvProp.ts.getSeconds());
+            osvControls.osvX.setValue(ISS.osvProp.r[0] * 0.001);  // Convert back to kilometers
+            osvControls.osvY.setValue(ISS.osvProp.r[1] * 0.001);
+            osvControls.osvZ.setValue(ISS.osvProp.r[2] * 0.001);
+            osvControls.osvVx.setValue(ISS.osvProp.v[0]);
+            osvControls.osvVy.setValue(ISS.osvProp.v[1]);
+            osvControls.osvVz.setValue(ISS.osvProp.v[2]);
+        }
+    }
+
+    // 16. Update the Keplerian elements based on the propagated OSV if no fix is applied.
+    if (!guiControls.keplerFix) {
+        function toNonNegative(angle) {
+            return angle < 0 ? angle + 360 : angle;
+        }
+
+        const keplerUpdated = Kepler.osvToKepler(ISS.osvProp.r, ISS.osvProp.v, ISS.osvProp.ts);
+        keplerControls.keplere.setValue(keplerUpdated.ecc_norm);
+        keplerControls.keplera.setValue(keplerUpdated.a * 0.001);  // Convert to kilometers
+        keplerControls.kepleri.setValue(keplerUpdated.incl);
+        keplerControls.keplerOmega.setValue(toNonNegative(keplerUpdated.Omega));
+        keplerControls.kepleromega.setValue(toNonNegative(keplerUpdated.omega));
+        keplerControls.keplerM.setValue(toNonNegative(keplerUpdated.M));
+    }
+
+    // 17. Convert the propagated OSV from the J2000 frame to the Earth-Centered Earth-Fixed (ECEF) frame.
+    let osv_ECEF = Frames.osvJ2000ToECEF(ISS.osvProp, nutPar);
+    ISS.r_ECEF = osv_ECEF.r;  // Position in the ECEF frame
+    ISS.v_ECEF = osv_ECEF.v;  // Velocity in the ECEF frame
+    ISS.r_J2000 = ISS.osvProp.r;  // Position in the J2000 frame
+    ISS.v_J2000 = ISS.osvProp.v;  // Velocity in the J2000 frame
+
+    // 18. Convert the satellite's position from Cartesian coordinates to latitude, longitude, and altitude (WGS84).
+    let wgs84 = Coordinates.cartToWgs84(ISS.r_ECEF);
+    ISS.alt = wgs84.h;  // Altitude above Earth's surface
+    ISS.lon = wgs84.lon;  // Longitude
+    ISS.lat = wgs84.lat;  // Latitude
+
+    // 19. Compute and update various astronomical data for the Sun and the Moon.
+    let lonlat = sunAltitude.computeSunLonLat(rASun, declSun, JD, JT, nutPar);
+    let lonlatMoon = moonAltitude.computeMoonLonLat(rAMoon, declMoon, JD, JT, nutPar);
+
+    // 20. Clear the WebGL canvas and set up the rendering environment.
+    gl.clearColor(0, 0, 0, 255);  // Clear the screen to black
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);  // Clear color and depth buffers
+    contextJs.clearRect(0, 0, canvasJs.width, canvasJs.height);  // Clear the 2D context
+
+    // 21. Handle changes in the screen size and update the canvas accordingly.
+    resizeCanvasToDisplaySize(gl.canvas);
+    resizeCanvasToDisplaySize(canvasJs);
+    gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);  // Set the viewport to match the canvas size
+    gl.enable(gl.DEPTH_TEST);  // Enable depth testing for 3D rendering
+    gl.enable(gl.CULL_FACE);  // Enable face culling (hides back faces of objects)
+
+    // 22. Create the view matrix for rendering (camera view).
+    const matrix = createViewMatrix();
+
+    // 23. Draw the Earth using the view matrix, Sun position, and various parameters.
+    drawEarth(matrix, rASun, declSun, LST, JT, nutPar);
+
+    // 24. If orbits are enabled in the GUI, draw the orbit path for the ISS or selected satellite.
+    if (guiControls.enableOrbit) {
+        drawOrbit(today, matrix, kepler_updated, nutPar);
+    }
+
+    // 25. If satellites are enabled, draw them using their TEME (True Equator, Mean Equinox) frame positions.
+    if (enableList) {
+        // Create a rotation matrix for the current time.
+        let rotMatrixTeme = createRotMatrix(today, JD, JT, nutPar);
+
+        // Draw the satellites either in the J2000 frame or the ECEF frame, depending on the GUI controls.
+        if (guiControls.frame === 'J2000') {
+            pointShaders.draw(matrix);  // Draw in J2000 frame
+        } else {
+            pointShaders.draw(m4.multiply(matrix, m4.transpose(rotMatrixTeme)));  // Draw in ECEF frame
+        }
+    }
+
+    // 26. Draw the Sun if enabled in the GUI.
+    if (guiControls.enableSun) {
+        drawSun(lonlat, JT, JD, rASun, declSun, matrix, nutPar);
+    }
+
+    // 27. Draw the satellite names near their positions in the scene if enabled in the GUI.
+    if (enableList && guiControls.showListNames) {
+        const a = 6378137;  // Semi-major axis of Earth (WGS84)
+        const cameraPos = [
+            1000 * guiControls.distance * MathUtils.cosd(guiControls.lat) * MathUtils.cosd(guiControls.lon),
+            1000 * guiControls.distance * MathUtils.cosd(guiControls.lat) * MathUtils.sind(guiControls.lon),
+            1000 * guiControls.distance * MathUtils.sind(guiControls.lat)
+        ];
+
+        for (let indSat = 0; indSat < osvSatListTeme.length; indSat++) {
+            const osvTeme = {r: osvSatListTeme[indSat].r, v: [0, 0, 0], JT: JT, JD: JD, ts: today};
+            if (guiControls.frame === 'J2000') {
+                if (!checkIntersection(cameraPos, osvTeme.r, 6371000)) {
+                    drawCaption(MathUtils.vecsub(osvTeme.r, cameraPos), satIndexToName[indSat], matrix);
+                }
+            } else {
+                let targetEcef = sgp4.coordTemePef(osvTeme).r;
+
+                if (!checkIntersection(cameraPos, targetEcef, 6371000)) {
+                    drawCaption(MathUtils.vecsub(targetEcef, cameraPos), satIndexToName[indSat], matrix);
+                }
+            }
+        }
+
+        pointShaders.setGeometry(pointsOut);  // Set satellite geometries for rendering.
+    }
+
+    // 28. Request to draw the next frame to keep the scene animating.
+    requestAnimationFrame(drawScene);
+}
