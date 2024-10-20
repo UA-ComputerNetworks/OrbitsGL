@@ -1,64 +1,41 @@
-/**
- * Class implementing the shaders for drawing of lines.
- */
 class PointShaders {
-  /**
-   * Constructor.
-   *
-   * @param {WebGLRenderingContext} gl
-   *      The WebGL rendering context to use.
-   */
   constructor(gl) {
     this.gl = gl
-    this.colorPoint = [200, 200, 200]
+    this.colorPoint = [255, 255, 255] // Default to cyan
     this.pointSize = 2.0
 
     this.vertShaderLine = `#version 300 es
-            // an attribute is an input (in) to a vertex shader.
-            // It will receive data from a buffer
-            in vec4 a_position;
-            in vec4 a_color;
+        in vec4 a_position;
+        in vec4 a_color;
 
-            // A matrix to transform the positions by
-            uniform mat4 u_matrix;
-            uniform float pointSize;
+        uniform mat4 u_matrix;
+        uniform float pointSize;
 
-            // a varying the color to the fragment shader
-            out vec4 v_color;
+        out vec4 v_color;
 
-            // all shaders have a main function
-            void main() 
-            {
-                // Multiply the position by the matrix.
-                gl_Position = u_matrix * a_position;
-                gl_PointSize = pointSize;
-
-                // Pass the color to the fragment shader.
-                v_color = a_color;
-            }
-            `
+        void main() {
+            gl_Position = u_matrix * a_position;
+            gl_PointSize = pointSize;
+            // Pass the color to the fragment shader
+            v_color = a_color / 255.0;  // Normalize the color
+        }
+        `
 
     this.fragShaderLine = `#version 300 es
-            precision highp float;
+        precision highp float;
 
-            // the varied color passed from the vertex shader
-            in vec4 v_color;
+        in vec4 v_color;
 
-            // we need to declare an output for the fragment shader
-            out vec4 outColor;
+        out vec4 outColor;
 
-            void main() 
-            {
-                outColor = v_color;
-            }
-            `
+        void main() {
+            outColor = v_color;  // Apply the color passed from the vertex shader
+        }
+        `
 
     this.gridLines = 0
   }
 
-  /**
-   * Initialize shaders and buffers.
-   */
   init() {
     let gl = this.gl
     this.program = compileProgram(gl, this.vertShaderLine, this.fragShaderLine)
@@ -71,11 +48,13 @@ class PointShaders {
     this.vertexArray = gl.createVertexArray()
     gl.bindVertexArray(this.vertexArray)
 
+    // Position buffer setup
     this.positionBuffer = gl.createBuffer()
     gl.bindBuffer(gl.ARRAY_BUFFER, this.positionBuffer)
     gl.enableVertexAttribArray(this.posAttrLocation)
     gl.vertexAttribPointer(this.posAttrLocation, 3, gl.FLOAT, false, 0, 0)
 
+    // Color buffer setup
     this.colorBuffer = gl.createBuffer()
     gl.bindBuffer(gl.ARRAY_BUFFER, this.colorBuffer)
     gl.enableVertexAttribArray(this.colorAttrLocation)
@@ -91,107 +70,49 @@ class PointShaders {
     gl.useProgram(this.program)
   }
 
-  /**
-   * Draw the orbit.
-   *
-   * @param {*} viewMatrix
-   *      The view matrix.
-   * @param {*} rA
-   *      The right ascension of the light source.
-   * @param {*} decl
-   *      The declination of the light source.
-   */
   draw(viewMatrix) {
     const gl = this.gl
 
     gl.useProgram(this.program)
     gl.bindVertexArray(this.vertexArray)
     gl.uniformMatrix4fv(this.matrixLocation, false, viewMatrix)
+
     const pointSizeLocation = gl.getUniformLocation(this.program, 'pointSize')
     gl.uniform1f(pointSizeLocation, this.pointSize)
 
-    // Draw the grid.
     gl.drawArrays(gl.POINTS, 0, this.gridLines * 2)
   }
 
-  // Fill the current ARRAY_BUFFER buffer with grid.
-  setGeometry(points) {
+  setGeometry(points, colors) {
     let gl = this.gl
 
     this.gridLines = points.length / 2
 
     var positions = new Float32Array(points.length * 3)
+    var colorArray = new Uint8Array(points.length * 3) // Color array for RGB
 
     for (let indPoint = 0; indPoint < points.length; indPoint++) {
       const index = indPoint * 3
       const point = points[indPoint]
+      const color = colors[indPoint] // RGB color for each point
 
+      // Set positions
       positions[index] = point[0]
       positions[index + 1] = point[1]
       positions[index + 2] = point[2]
+
+      // Set colors
+      colorArray[index] = color[0] // Red
+      colorArray[index + 1] = color[1] // Green
+      colorArray[index + 2] = color[2] // Blue
     }
 
-    gl.bindVertexArray(this.vertexArray)
-    gl.bindBuffer(gl.ARRAY_BUFFER, this.positionBuffer)
-    gl.bufferData(gl.ARRAY_BUFFER, positions, gl.STATIC_DRAW)
-    this.setColors(gl)
-  }
-
-  // Modify setColors to accept an array of colors.
-  setColors(satelliteColors) {
-    let gl = this.gl
-    const colorArray = new Uint8Array(this.gridLines * 6)
-
-    // Loop through each point and assign its specific color
-    for (let indPoint = 0; indPoint < this.gridLines * 2; indPoint++) {
-      const startIndex = indPoint * 3
-      const color = satelliteColors[indPoint] || this.colorPoint // Default to this.colorPoint if no specific color
-      colorArray[startIndex] = color[0]
-      colorArray[startIndex + 1] = color[1]
-      colorArray[startIndex + 2] = color[2]
-    }
-
-    gl.bindBuffer(gl.ARRAY_BUFFER, this.colorBuffer)
-    gl.bufferData(gl.ARRAY_BUFFER, colorArray, gl.STATIC_DRAW)
-  }
-
-  // Fill the current ARRAY_BUFFER buffer with colors for the 'F'.
-  setColors() {
-    let gl = this.gl
-    const colorArray = new Uint8Array(this.gridLines * 6)
-
-    for (let indPoint = 0; indPoint < this.gridLines * 2; indPoint++) {
-      const startIndex = indPoint * 3
-      colorArray[startIndex] = this.colorPoint[0]
-      colorArray[startIndex + 1] = this.colorPoint[1]
-      colorArray[startIndex + 2] = this.colorPoint[2]
-    }
-    gl.bindBuffer(gl.ARRAY_BUFFER, this.colorBuffer)
-    gl.bufferData(gl.ARRAY_BUFFER, colorArray, gl.STATIC_DRAW)
-  }
-
-  // Modify setGeometry to accept satellite positions
-  setGeometry(satellitePositions, satelliteColors) {
-    let gl = this.gl
-
-    this.gridLines = satellitePositions.length / 2
-
-    var positions = new Float32Array(satellitePositions.length * 3)
-
-    for (let indPoint = 0; indPoint < satellitePositions.length; indPoint++) {
-      const index = indPoint * 3
-      const point = satellitePositions[indPoint]
-
-      positions[index] = point[0]
-      positions[index + 1] = point[1]
-      positions[index + 2] = point[2]
-    }
-
-    gl.bindVertexArray(this.vertexArray)
+    // Bind and update position buffer
     gl.bindBuffer(gl.ARRAY_BUFFER, this.positionBuffer)
     gl.bufferData(gl.ARRAY_BUFFER, positions, gl.STATIC_DRAW)
 
-    // Update colors
-    this.setColors(satelliteColors)
+    // Bind and update color buffer
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.colorBuffer)
+    gl.bufferData(gl.ARRAY_BUFFER, colorArray, gl.STATIC_DRAW)
   }
 }
