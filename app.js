@@ -350,7 +350,14 @@ function drawScene(time) {
         const osvTeme = sgp4.propagateTargetTs(satellite, today, 10.0) // Propagate to get OSV
         console.log(`OSV for ${satName}:`, osvTeme) // Log the OSV data
 
+        if (!today || !(today instanceof Date)) {
+          console.error('Invalid "today" object:', today)
+        } else {
+          console.log('Current date for satellite propagation:', today)
+        }
+
         const osv_ECEF = Frames.osvJ2000ToECEF(osvTeme, nutPar) // Convert OSV to ECEF
+
         console.log(`ECEF for ${satName}:`, osv_ECEF.r) // Log the ECEF position
 
         // Store r_ECEF for the satellite
