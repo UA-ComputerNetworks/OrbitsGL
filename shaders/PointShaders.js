@@ -10,7 +10,7 @@ class PointShaders {
    */
   constructor(gl) {
     this.gl = gl // Save the WebGL context for use in other methods
-    this.colorPoint = [255, 0, 0] // Default point color (RGB, gray)
+    this.colorPoint = [0, 0, 255] // Default point color (RGB, gray)
     this.pointSize = 2.0 // Default point size
 
     // Vertex shader, defines how points are transformed and rendered
