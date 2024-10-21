@@ -896,3 +896,21 @@ function checkIntersection(source, target, radius) {
   }
   return false
 }
+
+function highlightSatelliteNode(satName, color) {
+  const index = satNameToIndex[satName]
+  if (index === undefined) {
+    console.error(`No index found for satellite: ${satName}`)
+    return
+  }
+
+  const satellite = satellites[index]
+  if (!satellite) {
+    console.error(`No satellite found for: ${satName}`)
+    return
+  }
+  console.log('highlightSatelliteNode reached\n')
+
+  // Update the shaders or geometry for the satellite's color
+  //pointShaders.setSatelliteColor(index, color) // Set color in shader for each satellite
+}

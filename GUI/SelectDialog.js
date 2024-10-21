@@ -10,8 +10,8 @@ SelectList.multiple = true
 SelectList.size = 10 // Show 10 satellite names at once
 
 // Store the selected satellites and their colors
-let selectedSatellites = []
-let satelliteColorMap = {}
+let selectedSatellites = [] // Array to store selected satellite objects
+let satelliteColorMap = {} // Store color for each satellite
 
 // Function to load the satellite names and colors from the file
 FileInput.onchange = function (event) {
@@ -53,58 +53,27 @@ FileInput.onchange = function (event) {
   }
 }
 
-// Function called when Enter button is clicked
 SelectEnter.onclick = function () {
-  if (satellites.length > 0) {
-    console.log('Multi-selection of satellites')
+  selectedSatellites = Array.from(SelectList.selectedOptions).map(
+    (option) => option.value
+  )
 
-    // Get selected satellite names
-    selectedSatellites = Array.from(SelectList.selectedOptions).map(
-      (option) => option.value
-    )
+  selectedSatellites.forEach((satName) => {
+    const satIndex = satNameToIndex[satName]
+    const satellite = satellites[satIndex]
+    if (!satellite) {
+      console.error(
+        `No satellite data found for "${satName}" at index ${satIndex}`
+      )
+      return
+    }
 
-    selectedSatellites.forEach((targetName) => {
-      console.log('Selected satellite:', targetName)
+    // Apply color and store the satellite
+    const color = satelliteColorMap[satName] || [200, 200, 200]
+    highlightSatelliteNode(satName, color) // Function to highlight with the correct color
+  })
 
-      const satIndex = satNameToIndex[targetName] // Get index of the satellite
-      if (satIndex === undefined) {
-        console.error(`Satellite "${targetName}" not found in satNameToIndex`)
-        return
-      }
-
-      const lines = satLines[satIndex] // Get the TLE lines for this satellite
-      if (!lines) {
-        console.error(
-          `No TLE lines found for satellite "${targetName}" at index ${satIndex}`
-        )
-        return
-      }
-
-      const satellite = satellites[satIndex] // Get the satellite object
-      if (!satellite) {
-        console.error(
-          `No satellite data found for "${targetName}" at index ${satIndex}`
-        )
-        return
-      }
-
-      // Set the selected satellite and update TLE controls
-      osvControls.targetName.setValue(targetName)
-      satrec = satellite
-      osvControls.source.setValue('TLE')
-
-      // Update TLE controls based on the satellite's TLE lines
-      updateTLEControls(targetName, lines[1], lines[2])
-
-      // Apply color and size based on the input file
-      const color = satelliteColorMap[targetName] || [200, 200, 200] // Default to grey
-      highlightSatellite(targetName, color) // Highlight satellite with given color
-    })
-  } else {
-    console.error('No satellites found.')
-  }
-
-  // Hide the container after selection
+  // Hide the selection dialog
   SelectContainer.style.visibility = 'hidden'
 }
 
@@ -112,17 +81,4 @@ SelectEnter.onclick = function () {
 SelectCancel.onclick = function () {
   SelectContainer.style.visibility = 'hidden'
   console.log('Satellite selection canceled.')
-}
-
-function highlightSatellite(satellite, color, size = 1.5) {
-  console.log(
-    `Highlighting satellite: ${satellite} with color: ${color} and size: ${size}`
-  )
-
-  const satellitePosition = [satellite.x, satellite.y, satellite.z] // Example position (assuming you have these coordinates)
-  const satelliteColors = [color] // You can have an array of colors for multiple satellites.
-
-  pointShaders.setGeometry([satellitePosition], satelliteColors) // Pass position and color
-  pointShaders.pointSize = size // Set the point size for the selected satellite
-  pointShaders.draw(matrix) // Draw the satellite node
 }

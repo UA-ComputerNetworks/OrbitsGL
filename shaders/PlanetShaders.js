@@ -157,13 +157,13 @@ class PlanetShaders {
     
                     if (issAltitude > 0.0)
                     {
-                        outColor = outColor + vec4(0.0, 0.0, 0.2, 0.0);
+                        outColor = outColor + vec4(0.2, 0.0, 0.0, 0.0);
                     }
                 }
             }
             else 
             {
-                outColor = vec4(0.0,0.0, 1.0, 1.0);
+                outColor = vec4(1.0, 1.0, 1.0, 1.0);
             }
         }
         `
