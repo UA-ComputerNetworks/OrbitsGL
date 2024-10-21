@@ -56,116 +56,98 @@ class PlanetShaders {
         `
 
     this.fragShaderSphere = `#version 300 es
-        
-        precision highp float;
-        #define PI 3.1415926538
-        #define A 6378137.0
-        #define B 6356752.314245
-        #define E 0.081819190842965
-        #define R_EARTH 6371000.0
-        
-        // Passed in from the vertex shader.
-        in vec2 v_texcoord;
-        
-        // The texture.
-        uniform sampler2D u_imageDay;
-        uniform sampler2D u_imageNight;
-        uniform bool u_draw_texture;
 
-        // 
-        uniform float u_decl;
-        uniform float u_rA;
-        uniform float u_LST;
-        uniform float u_iss_x;
-        uniform float u_iss_y;
-        uniform float u_iss_z;
-        uniform bool u_show_iss;
+precision highp float;
+#define PI 3.1415926538
+#define A 6378137.0
+#define B 6356752.314245
+#define E 0.081819190842965
+#define R_EARTH 6371000.0
 
-        // we need to declare an output for the fragment shader
-        out vec4 outColor;
-        
-        float deg2rad(in float deg)
-        {
-            return 2.0 * PI * deg / 360.0; 
+in vec2 v_texcoord;
+
+uniform sampler2D u_imageDay;
+uniform sampler2D u_imageNight;
+uniform bool u_draw_texture;
+
+// Array to hold ECEF coordinates of multiple satellites
+uniform vec3 u_sat_positions[10];  // Maximum of 10 satellites for this example
+uniform int u_num_sats;  // Number of satellites passed in the array
+
+uniform float u_decl;
+uniform float u_rA;
+uniform float u_LST;
+
+out vec4 outColor;
+
+float deg2rad(in float deg) {
+    return 2.0 * PI * deg / 360.0;
+}
+
+float rad2deg(in float rad) {
+    return 360.0 * rad / (2.0 * PI);
+}
+
+void main() {
+    if (u_draw_texture) {
+        float lon = 2.0 * PI * (v_texcoord.x - 0.5);
+        float lat = PI * (0.5 - v_texcoord.y);
+        float LSTlon = u_LST + lon;
+        float h = LSTlon - u_rA;
+
+        float altitude = asin(clamp(cos(h) * cos(u_decl) * cos(lat) + sin(u_decl) * sin(lat), -1.0, 1.0));
+        altitude = rad2deg(altitude);
+
+        if (altitude > 0.0) {
+            // Day.
+            outColor = texture(u_imageDay, v_texcoord);
+        } else if (altitude > -6.0) {
+            // Civil twilight.
+            outColor = mix(texture(u_imageNight, v_texcoord), texture(u_imageDay, v_texcoord), 0.75);
+        } else if (altitude > -12.0) {
+            // Nautical twilight.
+            outColor = mix(texture(u_imageNight, v_texcoord), texture(u_imageDay, v_texcoord), 0.5);
+        } else if (altitude > -18.0) {
+            // Astronomical twilight.
+            outColor = mix(texture(u_imageNight, v_texcoord), texture(u_imageDay, v_texcoord), 0.25);
+        } else {
+            // Night.
+            outColor = texture(u_imageNight, v_texcoord);
         }
 
-        float rad2deg(in float rad)
-        {
-            return 360.0 * rad / (2.0 * PI);
-        }
-        
-        void main() 
-        {
-            if (u_draw_texture)
-            {
-                float lon = 2.0 * PI * (v_texcoord.x - 0.5);
-                float lat = PI * (0.5 - v_texcoord.y);
-                float LSTlon = u_LST + lon;
-                float h = LSTlon - u_rA;
+        // Loop over all satellites and calculate coverage
+        for (int i = 0; i < u_num_sats; i++) {
+            vec3 sat_pos = u_sat_positions[i];
+            float longitude = rad2deg(lon);
+            float latitude = rad2deg(lat);
 
-                // For Intel GPUs, the argument for asin can be outside [-1, 1] unless limited.
-                float altitude = asin(clamp(cos(h)*cos(u_decl)*cos(lat) + sin(u_decl)*sin(lat), -1.0, 1.0));
-                altitude = rad2deg(altitude);
-    
-                if (altitude > 0.0)
-                {
-                    // Day. 
-                    outColor = texture(u_imageDay, v_texcoord);
-                }
-                else if (altitude > -6.0)
-                {
-                    // Civil twilight.
-                    outColor = mix(texture(u_imageNight, v_texcoord), texture(u_imageDay, v_texcoord), 0.75);
-                }
-                else if (altitude > -12.0)
-                {
-                    // Nautical twilight.
-                    outColor = mix(texture(u_imageNight, v_texcoord), texture(u_imageDay, v_texcoord), 0.5);
-                }
-                else if (altitude > -18.0)
-                {
-                    // Astronomical twilight.
-                    outColor = mix(texture(u_imageNight, v_texcoord), texture(u_imageDay, v_texcoord), 0.25);
-                }
-                else
-                {
-                    // Night.
-                    outColor = texture(u_imageNight, v_texcoord);
-                }
+            // Surface coordinates.
+            float sinLat = sin(deg2rad(latitude));
+            float N = A / sqrt(1.0 - E * E * sinLat * sinLat);
 
-                if (u_show_iss)
-                {
-                    float longitude = rad2deg(lon);
-                    float latitude  = rad2deg(lat);
-            
-                    // Surface coordinates.
-                    float sinLat = sin(deg2rad(latitude));
-                    float N = A / sqrt(1.0 - E*E*sinLat*sinLat);
-        
-                    float xECEF = N * cos(deg2rad(latitude)) * cos(deg2rad(longitude));
-                    float yECEF = N * cos(deg2rad(latitude)) * sin(deg2rad(longitude));
-                    float zECEF = (1.0 - E*E) * N * sin(deg2rad(latitude));
-                    float normECEF = sqrt(xECEF * xECEF + yECEF * yECEF + zECEF * zECEF); 
-        
-                    float xDiff = u_iss_x - xECEF;
-                    float yDiff = u_iss_y - yECEF;
-                    float zDiff = u_iss_z - zECEF;
-                    float normDiff = sqrt(xDiff * xDiff + yDiff * yDiff + zDiff * zDiff); 
-        
-                    float dotProduct = xECEF * xDiff + yECEF * yDiff + zECEF * zDiff;
-                    float issAltitude = rad2deg(asin(dotProduct / (normECEF * normDiff)));
-    
-                    if (issAltitude > 0.0)
-                    {
-                        outColor = outColor + vec4(0.2, 0.0, 0.0, 0.0);
-                    }
-                }
-            }
-            else 
-            {
-                outColor = vec4(1.0, 1.0, 1.0, 1.0);
+            float xECEF = N * cos(deg2rad(latitude)) * cos(deg2rad(longitude));
+            float yECEF = N * cos(deg2rad(latitude)) * sin(deg2rad(longitude));
+            float zECEF = (1.0 - E * E) * N * sin(deg2rad(latitude));
+
+            float normECEF = sqrt(xECEF * xECEF + yECEF * yECEF + zECEF * zECEF);
+
+            // Calculate difference between satellite position and surface position
+            vec3 diff = sat_pos - vec3(xECEF, yECEF, zECEF);
+            float normDiff = length(diff);
+
+            // Calculate dot product to determine visibility
+            float dotProduct = dot(vec3(xECEF, yECEF, zECEF), diff);
+            float satAltitude = rad2deg(asin(dotProduct / (normECEF * normDiff)));
+
+            if (satAltitude > 0.0) {
+                // Add coverage color (red tint) for visibility
+                outColor += vec4(0.2, 0.0, 0.0, 0.0);
             }
         }
+    } else {
+        outColor = vec4(1.0, 1.0, 1.0, 1.0);
+    }
+}
         `
 
     this.vertShaderGrid = `#version 300 es

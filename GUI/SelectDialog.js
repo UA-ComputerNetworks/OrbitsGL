@@ -82,3 +82,20 @@ SelectCancel.onclick = function () {
   SelectContainer.style.visibility = 'hidden'
   console.log('Satellite selection canceled.')
 }
+
+function highlightSatelliteNode(satName, color) {
+  const index = satNameToIndex[satName]
+  if (index === undefined) {
+    console.error(`No index found for satellite: ${satName}`)
+    return
+  }
+
+  const satellite = satellites[index]
+  if (!satellite) {
+    console.error(`No satellite found for: ${satName}`)
+    return
+  }
+
+  // Update the shaders or geometry for the satellite's color
+  console.log('Highllight satellite node reached\n')
+}
