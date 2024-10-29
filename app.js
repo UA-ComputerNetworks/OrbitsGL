@@ -329,48 +329,8 @@ function drawScene(time) {
   gl.enable(gl.DEPTH_TEST)
   gl.enable(gl.CULL_FACE)
 
-  let rECEFArray =
-    [] / // Array to store r_ECEF for each selected satellite
-    // for satellite coverage.
-
-    selectedSatellites.forEach((satName) => {
-      const satIndex = satNameToIndex[satName] // Get the index of the selected satellite
-      const satellite = satellites[satIndex] // Retrieve the satellite data by index
-
-      console.log(`Processing satellite: ${satName}, Index: ${satIndex}`)
-      console.log(`Satellite object:`, satellite)
-
-      if (!satellite) {
-        console.error(`No satellite data found for "${satName}"`)
-        return
-      }
-
-      // Propagate the satellite's position and velocity
-      try {
-        const osvTeme = sgp4.propagateTargetTs(satellite, today, 10.0) // Propagate to get OSV
-        console.log(`OSV for ${satName}:`, osvTeme) // Log the OSV data
-
-        if (!today || !(today instanceof Date)) {
-          console.error('Invalid "today" object:', today)
-        } else {
-          console.log('Current date for satellite propagation:', today)
-        }
-
-        const osv_ECEF = Frames.osvJ2000ToECEF(osvTeme, nutPar) // Convert OSV to ECEF
-
-        console.log(`ECEF for ${satName}:`, osv_ECEF.r) // Log the ECEF position
-
-        // Store r_ECEF for the satellite
-        rECEFArray.push(osv_ECEF.r)
-
-        // Optionally store velocity or other data if needed for additional functionality
-      } catch (err) {
-        console.error(`Error propagating satellite "${satName}":`, err)
-      }
-    })
-
   const matrix = createViewMatrix()
-  drawEarth(matrix, rECEFArray, rASun, declSun, LST, JT, nutPar)
+  drawEarth(matrix, rASun, declSun, LST, JT, nutPar)
   if (guiControls.enableOrbit) {
     drawOrbit(today, matrix, kepler_updated, nutPar)
   }
@@ -486,11 +446,6 @@ function createRotMatrix(today, JD, JT, nutPar) {
  * @returns OSV.
  */
 function createOsv(today) {
-  if (!today || isNaN(today.getUTCFullYear())) {
-    console.error('Invalid date for OSV:', today)
-    return null
-  }
-
   let osvOut = null
 
   // Use latest telemetry only if enabled. Then, the telemetry set from the UI controls is not
@@ -669,10 +624,10 @@ function createViewMatrix() {
  * @param {*} nutPar
  *      Nutation parameters.
  */
-function drawEarth(matrix, rECEFArray, rASun, declSun, LST, JT, nutPar) {
+function drawEarth(matrix, rASun, declSun, LST, JT, nutPar) {
   let rECEF = null
   if (guiControls.enableVisibility) {
-    rECEF = rECEFArray
+    rECEF = ISS.r_ECEF
   }
 
   let earthMatrix = matrix

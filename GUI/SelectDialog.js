@@ -52,14 +52,13 @@ FileInput.onchange = function (event) {
     console.log('No file selected.')
   }
 }
-
 SelectEnter.onclick = function () {
   selectedSatellites = Array.from(SelectList.selectedOptions).map(
     (option) => option.value
   )
 
   selectedSatellites.forEach((satName) => {
-    const satIndex = satNameToIndex[satName]
+    const satIndex = satNameToIndex[satName] // Check if satellite is in the TLE list
     const satellite = satellites[satIndex]
     if (!satellite) {
       console.error(
@@ -68,9 +67,14 @@ SelectEnter.onclick = function () {
       return
     }
 
-    // Apply color and store the satellite
+    // Apply color from the satelliteColorMap
     const color = satelliteColorMap[satName] || [200, 200, 200]
-    highlightSatelliteNode(satName, color) // Function to highlight with the correct color
+
+    // Optionally, we can store both the satellite and the color
+    satellite.color = color // Attach color to the satellite object
+
+    // Log the satellite details
+    console.log(`Selected Satellite: ${satName}, Color: [${color}]`)
   })
 
   // Hide the selection dialog
@@ -81,21 +85,4 @@ SelectEnter.onclick = function () {
 SelectCancel.onclick = function () {
   SelectContainer.style.visibility = 'hidden'
   console.log('Satellite selection canceled.')
-}
-
-function highlightSatelliteNode(satName, color) {
-  const index = satNameToIndex[satName]
-  if (index === undefined) {
-    console.error(`No index found for satellite: ${satName}`)
-    return
-  }
-
-  const satellite = satellites[index]
-  if (!satellite) {
-    console.error(`No satellite found for: ${satName}`)
-    return
-  }
-
-  // Update the shaders or geometry for the satellite's color
-  console.log('Highllight satellite node reached\n')
 }
