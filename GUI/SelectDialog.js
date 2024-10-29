@@ -52,29 +52,40 @@ FileInput.onchange = function (event) {
     console.log('No file selected.')
   }
 }
+
 SelectEnter.onclick = function () {
   selectedSatellites = Array.from(SelectList.selectedOptions).map(
     (option) => option.value
   )
 
   selectedSatellites.forEach((satName) => {
-    const satIndex = satNameToIndex[satName] // Check if satellite is in the TLE list
-    const satellite = satellites[satIndex]
-    if (!satellite) {
-      console.error(
-        `No satellite data found for "${satName}" at index ${satIndex}`
-      )
-      return
-    }
+    const satIndex = satNameToIndex[satName] // Map name to TLE list
+    const satellite = createSatelliteObject() // Initialize satellite object
+    satellite.name = satName // Set the satellite's name
 
-    // Apply color from the satelliteColorMap
-    const color = satelliteColorMap[satName] || [200, 200, 200]
+    const tleData = tleList[satIndex] // Get TLE data
+    const { tleLine1, tleLine2 } = tleData // Extract TLE lines
 
-    // Optionally, we can store both the satellite and the color
-    satellite.color = color // Attach color to the satellite object
+    // Update `osvIn` with the initial telemetry based on TLE
+    satellite.osvIn = sgp4.propagateFromTLE(tleLine1, tleLine2, today)
 
-    // Log the satellite details
-    console.log(`Selected Satellite: ${satName}, Color: [${color}]`)
+    // Now propagate this to get `osvProp` for the current time
+    satellite.osvProp = sgp4.propagateFromTLE(tleLine1, tleLine2, today)
+
+    // Compute Keplerian elements from `osvProp`
+    satellite.kepler = Kepler.osvToKepler(
+      satellite.osvProp.r,
+      satellite.osvProp.v,
+      satellite.osvProp.ts
+    )
+
+    console.log(`Satellite ${satIndex}: ${satName} OSV:`, satellite.osvProp)
+
+    satellites[satIndex] = satellite // Store the satellite in the main array
+    selectedSatellites.push({
+      sat: satellite,
+      color: satelliteColorMap[satName] || [200, 200, 200], // Assign color
+    })
   })
 
   // Hide the selection dialog
@@ -85,4 +96,19 @@ SelectEnter.onclick = function () {
 SelectCancel.onclick = function () {
   SelectContainer.style.visibility = 'hidden'
   console.log('Satellite selection canceled.')
+}
+
+// Function to create a new satellite object with the required properties
+function createSatelliteObject() {
+  return {
+    name: '', // Will be assigned when creating the satellite object
+    osvIn: { r: [0.0, 0.0, 0.0], v: [0.0, 0.0, 0.0], ts: null }, // Input (raw) telemetry data
+    osvProp: { r: [0.0, 0.0, 0.0], v: [0.0, 0.0, 0.0], ts: null }, // Propagated (calculated) telemetry
+    kepler: { a: 0 }, // Orbital parameters (e.g., semi-major axis 'a')
+    r_ECEF: [0, 0, 0], // Position in Earth-Centered Earth-Fixed coordinates
+    v_ECEF: [0, 0, 0], // Velocity in ECEF coordinates
+    alt: 0, // Altitude
+    lon: 0, // Longitude
+    lat: 0, // Latitude
+  }
 }
