@@ -138,6 +138,10 @@ function drawScene(time) {
   // overwritten below.
   ISS.osv = createOsv(today)
 
+  satellites.forEach((satellite) => {
+    satellite.osv = createOsv(today) // Apply the same logic to all selected satellites
+  })
+
   let osvSatListTeme = []
   if (enableList) {
     for (let indSat = 0; indSat < satellites.length; indSat++) {
@@ -331,8 +335,14 @@ function drawScene(time) {
 
   const matrix = createViewMatrix()
   drawEarth(matrix, rASun, declSun, LST, JT, nutPar)
+  // if (guiControls.enableOrbit) {
+  //   drawOrbit(today, matrix, kepler_updated, nutPar)
+  // }
+
   if (guiControls.enableOrbit) {
-    drawOrbit(today, matrix, kepler_updated, nutPar)
+    satellites.forEach((satellite) => {
+      drawOrbit(today, matrix, satellite.kepler, nutPar) // Draw orbits for each satellite
+    })
   }
 
   let rotMatrixTeme
