@@ -964,7 +964,7 @@ function createOsvForSatellite(satellite, today) {
       satellite.osvProp.v,
       satellite.osvProp.ts
     )
-    keplerParams.ecc_norm = Math.min(keplerParams.ecc_norm, 0.999) // Clamp eccentricity to avoid instability
+    //keplerParams.ecc_norm = Math.min(keplerParams.ecc_norm, 0.999) // Clamp eccentricity to avoid instability
 
     satellite.kepler = keplerParams
 
