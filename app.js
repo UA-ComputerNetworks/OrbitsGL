@@ -70,6 +70,7 @@ var satNameToIndex = []
 var satIndexToName = []
 
 var selectedSatellites = [] // Assuming this is populated from SelectDialog.
+let satelliteObjects = []
 
 requestAnimationFrame(drawScene)
 
@@ -337,7 +338,7 @@ function drawScene(time) {
   // Draw selected satellites
   selectedSatellites.forEach((satellite) => {
     createOsvForSatellite(satellite, today)
-    drawOrbit(satellite, matrix, nutPar)
+    drawOrbit(today, satellite, matrix, nutPar)
     drawSatellite(satellite, matrix, nutPar)
   })
 
@@ -985,10 +986,9 @@ function createOsvForSatellite(satellite, today) {
 //   }
 // }
 
-function drawOrbit(today, matrix, satellite, nutPar) {
-  if (!satellite.kepler) {
+function drawOrbit(today, satellite, matrix, nutPar) {
+  if (!satellite.kepler || !satellite.kepler.ts) {
     console.warn(`No Kepler data available for satellite ${satellite.name}`)
-    console.warn('satellite is ', satellite)
     return
   }
 

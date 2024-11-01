@@ -10,7 +10,6 @@ console.log('TLE input area:', TLEinput)
 console.log('TLE file input:', TLEFileInput)
 
 // Global dictionary to store satellite objects by name
-let satelliteObjects = {}
 
 // Function to handle file reading
 TLEFileInput.onchange = function (event) {
@@ -93,6 +92,8 @@ ListEnter.onclick = function () {
       satIndexToName.push(title)
 
       const osvProp = sgp4.propagateTargetTs(satRec, new Date(), 0.0)
+      // Convert OSV to Keplerian parameters and ensure it is stored under `kepler`.
+      const keplerParams = Kepler.osvToKepler(osvProp.r, osvProp.v, new Date())
       if (keplerParams && keplerParams.a) {
         // Only store if valid
         satelliteObjects[title] = {
@@ -108,6 +109,8 @@ ListEnter.onclick = function () {
           lat: 0,
           color: [200, 200, 200], // Default color, can be updated in SelectDialog
         }
+
+        console.log('Kepler parameters are ', satelliteObjects[title].kepler)
       } else {
         console.warn(`Kepler data missing for ${title}`)
       }
