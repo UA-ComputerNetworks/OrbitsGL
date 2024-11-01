@@ -69,6 +69,8 @@ var satLines = []
 var satNameToIndex = []
 var satIndexToName = []
 
+var selectedSatellites = [] // Assuming this is populated from SelectDialog.
+
 requestAnimationFrame(drawScene)
 
 // Draw the scene.
@@ -331,9 +333,22 @@ function drawScene(time) {
 
   const matrix = createViewMatrix()
   drawEarth(matrix, rASun, declSun, LST, JT, nutPar)
-  if (guiControls.enableOrbit) {
-    drawOrbit(today, matrix, kepler_updated, nutPar)
-  }
+
+  // Draw selected satellites
+  selectedSatellites.forEach((satellite) => {
+    createOsvForSatellite(satellite, today)
+    drawOrbit(satellite, matrix, nutPar)
+    drawSatellite(satellite, matrix, nutPar)
+  })
+
+  // // Render each satellite
+  // osvSatListTeme.forEach((sat) => {
+  //   drawSatellite(sat, matrix, nutPar)
+  // })
+
+  // if (guiControls.enableOrbit) {
+  //   drawOrbit(today, matrix, kepler_updated, nutPar)
+  // }
 
   let rotMatrixTeme
   if (enableList) {
@@ -657,86 +672,86 @@ function drawEarth(matrix, rASun, declSun, LST, JT, nutPar) {
   )
 }
 
-/**
- * Draw orbit.
- *
- * @param {*} today
- *      Date.
- * @param {*} matrix
- *      View matrix.
- * @param {*} kepler_updated
- *      Kepler parameters
- * @param {*} JD
- *      Julian date.
- */
-function drawOrbit(today, matrix, kepler_updated, nutPar) {
-  let p = []
-  const period = Kepler.computePeriod(kepler_updated.a, kepler_updated.mu)
+// /**
+//  * Draw orbit.
+//  *
+//  * @param {*} today
+//  *      Date.
+//  * @param {*} matrix
+//  *      View matrix.
+//  * @param {*} kepler_updated
+//  *      Kepler parameters
+//  * @param {*} JD
+//  *      Julian date.
+//  */
+// function drawOrbit(today, matrix, kepler_updated, nutPar) {
+//   let p = []
+//   const period = Kepler.computePeriod(kepler_updated.a, kepler_updated.mu)
 
-  // Division by 100.0 leads to numerical issues.
-  const jdStep = period / (guiControls.orbitPoints + 0.01)
+//   // Division by 100.0 leads to numerical issues.
+//   const jdStep = period / (guiControls.orbitPoints + 0.01)
 
-  for (
-    let jdDelta = -period * guiControls.orbitsBefore;
-    jdDelta <= period * guiControls.orbitsAfter;
-    jdDelta += jdStep
-  ) {
-    const deltaDate = new Date(today.getTime() + 1000 * jdDelta)
+//   for (
+//     let jdDelta = -period * guiControls.orbitsBefore;
+//     jdDelta <= period * guiControls.orbitsAfter;
+//     jdDelta += jdStep
+//   ) {
+//     const deltaDate = new Date(today.getTime() + 1000 * jdDelta)
 
-    let x = 0
-    let y = 0
-    let z = 0
-    if (guiControls.source === 'TLE') {
-      const osvTeme = sgp4.propagateTargetTs(satrec, deltaDate, 0.0)
-      const osvJ2000 = sgp4.coordTemeJ2000(osvTeme, nutPar)
-      const posEci = osvJ2000.r
-      const velEci = osvJ2000.v
-      const osvPropJ2000 = {
-        r: [posEci[0] * 1000.0, posEci[1] * 1000.0, posEci[2] * 1000.0],
-        v: [velEci[0], velEci[1], velEci[2]],
-        ts: deltaDate,
-      }
+//     let x = 0
+//     let y = 0
+//     let z = 0
+//     if (guiControls.source === 'TLE') {
+//       const osvTeme = sgp4.propagateTargetTs(satrec, deltaDate, 0.0)
+//       const osvJ2000 = sgp4.coordTemeJ2000(osvTeme, nutPar)
+//       const posEci = osvJ2000.r
+//       const velEci = osvJ2000.v
+//       const osvPropJ2000 = {
+//         r: [posEci[0] * 1000.0, posEci[1] * 1000.0, posEci[2] * 1000.0],
+//         v: [velEci[0], velEci[1], velEci[2]],
+//         ts: deltaDate,
+//       }
 
-      if (guiControls.frame === 'ECEF') {
-        const osvEcef = Frames.osvJ2000ToECEF(osvPropJ2000, nutPar)
-        ;[x, y, z] = MathUtils.vecmul(osvEcef.r, 0.001)
-      } else if (guiControls.frame === 'J2000') {
-        ;[x, y, z] = [posEci[0], posEci[1], posEci[2]]
-      }
-    } else {
-      const osvProp = Kepler.propagate(kepler_updated, deltaDate)
+//       if (guiControls.frame === 'ECEF') {
+//         const osvEcef = Frames.osvJ2000ToECEF(osvPropJ2000, nutPar)
+//         ;[x, y, z] = MathUtils.vecmul(osvEcef.r, 0.001)
+//       } else if (guiControls.frame === 'J2000') {
+//         ;[x, y, z] = [posEci[0], posEci[1], posEci[2]]
+//       }
+//     } else {
+//       const osvProp = Kepler.propagate(kepler_updated, deltaDate)
 
-      if (guiControls.frame === 'ECEF') {
-        const osv_ECEF = Frames.osvJ2000ToECEF(osvProp, nutPar)
-        ;[x, y, z] = MathUtils.vecmul(osv_ECEF.r, 0.001)
-      } else if (guiControls.frame === 'J2000') {
-        ;[x, y, z] = MathUtils.vecmul(osvProp.r, 0.001)
-      }
-    }
+//       if (guiControls.frame === 'ECEF') {
+//         const osv_ECEF = Frames.osvJ2000ToECEF(osvProp, nutPar)
+//         ;[x, y, z] = MathUtils.vecmul(osv_ECEF.r, 0.001)
+//       } else if (guiControls.frame === 'J2000') {
+//         ;[x, y, z] = MathUtils.vecmul(osvProp.r, 0.001)
+//       }
+//     }
 
-    p.push([x, y, z])
-    if (p.length != 1) {
-      p.push([x, y, z])
-    }
-  }
-  p.push(p[p.length - 1])
-  if (guiControls.frame === 'ECEF') {
-    ;[ISS.x, ISS.y, ISS.z] = MathUtils.vecmul(ISS.r_ECEF, 0.001)
-  } else if (guiControls.frame === 'J2000') {
-    ;[ISS.x, ISS.y, ISS.z] = MathUtils.vecmul(ISS.r_J2000, 0.001)
-  }
-  p.push([ISS.x, ISS.y, ISS.z])
-  p.push([0, 0, 0])
+//     p.push([x, y, z])
+//     if (p.length != 1) {
+//       p.push([x, y, z])
+//     }
+//   }
+//   p.push(p[p.length - 1])
+//   if (guiControls.frame === 'ECEF') {
+//     ;[ISS.x, ISS.y, ISS.z] = MathUtils.vecmul(ISS.r_ECEF, 0.001)
+//   } else if (guiControls.frame === 'J2000') {
+//     ;[ISS.x, ISS.y, ISS.z] = MathUtils.vecmul(ISS.r_J2000, 0.001)
+//   }
+//   p.push([ISS.x, ISS.y, ISS.z])
+//   p.push([0, 0, 0])
 
-  lineShaders.setGeometry(p)
-  lineShaders.draw(matrix)
+//   lineShaders.setGeometry(p)
+//   lineShaders.draw(matrix)
 
-  // The satellite is replaced with a smaller sphere without textures, map nor grid.
-  let issMatrix = m4.translate(matrix, ISS.x, ISS.y, ISS.z)
-  const factor = 0.01 * guiControls.satelliteScale
-  issMatrix = m4.scale(issMatrix, factor, factor, factor)
-  earthShaders.draw(issMatrix, 0, 0, LST, false, false, false, null)
-}
+//   // The satellite is replaced with a smaller sphere without textures, map nor grid.
+//   let issMatrix = m4.translate(matrix, ISS.x, ISS.y, ISS.z)
+//   const factor = 0.01 * guiControls.satelliteScale
+//   issMatrix = m4.scale(issMatrix, factor, factor, factor)
+//   earthShaders.draw(issMatrix, 0, 0, LST, false, false, false, null)
+// }
 
 /**
  * Draw Sun.
@@ -895,4 +910,129 @@ function checkIntersection(source, target, radius) {
     return d < distance
   }
   return false
+}
+
+function drawSatellite(sat, matrix, nutPar) {
+  const osv_ECEF = Frames.osvJ2000ToECEF(sat, nutPar)
+
+  // Define drawing positions
+  const [x, y, z] = MathUtils.vecmul(osv_ECEF.r, 0.001) // Convert to kilometers for display
+
+  // Draw orbit path if enabled
+  if (guiControls.enableOrbit) {
+    drawOrbit(sat, matrix, nutPar)
+  }
+
+  // Draw satellite marker with color
+  let satMatrix = m4.translate(matrix, x, y, z)
+  const factor = 0.01 * guiControls.satelliteScale
+  satMatrix = m4.scale(satMatrix, factor, factor, factor)
+  earthShaders.draw(satMatrix, 0, 0, LST, false, false, false, sat.color)
+}
+
+function createOsvForSatellite(satellite, today) {
+  if (!satellite.satrec || !satellite.satrec.tle) {
+    console.error(`Satellite ${satellite.name} is missing TLE data.`)
+    return
+  }
+
+  console.log('satrec is ', satellite.satrec)
+  try {
+    const osvTeme = sgp4.propagateTargetTs(satellite.satrec, today, 0.0)
+    const osvJ2000 = sgp4.coordTemeJ2000(osvTeme)
+    satellite.osvProp = {
+      r: [
+        osvJ2000.r[0] * 1000.0,
+        osvJ2000.r[1] * 1000.0,
+        osvJ2000.r[2] * 1000.0,
+      ],
+      v: [
+        osvJ2000.v[0] * 1000.0,
+        osvJ2000.v[1] * 1000.0,
+        osvJ2000.v[2] * 1000.0,
+      ],
+      ts: today,
+    }
+    console.log(`OSV computed for ${satellite.name}`)
+  } catch (error) {
+    console.error(
+      `Error in createOsvForSatellite for ${satellite.name}:`,
+      error
+    )
+  }
+}
+
+// function createOsvForSatellite(satellite, today) {
+//   if (guiControls.source === 'TLE') {
+//     const osvTeme = sgp4.propagateTargetTs(satellite.satRec, today, 0.0)
+//     const osvJ2000 = sgp4.coordTemeJ2000(osvTeme)
+//     satellite.osvProp = {
+//       r: [
+//         osvJ2000.r[0] * 1000.0,
+//         osvJ2000.r[1] * 1000.0,
+//         osvJ2000.r[2] * 1000.0,
+//       ],
+//       v: [
+//         osvJ2000.v[0] * 1000.0,
+//         osvJ2000.v[1] * 1000.0,
+//         osvJ2000.v[2] * 1000.0,
+//       ],
+//       ts: today,
+//     }
+//   } else {
+//     // Apply custom propagation if not using TLE (e.g., Kepler)
+//     satellite.osvProp = Kepler.propagate(satellite.kepler, today)
+//   }
+// }
+
+function drawOrbit(today, matrix, satellite, nutPar) {
+  if (!satellite.kepler) {
+    console.warn(`No Kepler data available for satellite ${satellite.name}`)
+    console.warn('satellite is ', satellite)
+    return
+  }
+
+  let p = []
+  const period = Kepler.computePeriod(satellite.kepler.a, satellite.kepler.mu)
+
+  const jdStep = period / (guiControls.orbitPoints + 0.01)
+
+  for (
+    let jdDelta = -period * guiControls.orbitsBefore;
+    jdDelta <= period * guiControls.orbitsAfter;
+    jdDelta += jdStep
+  ) {
+    const deltaDate = new Date(today.getTime() + 1000 * jdDelta)
+
+    let osvProp = Kepler.propagate(satellite.kepler, deltaDate)
+    let x = 0,
+      y = 0,
+      z = 0
+
+    if (guiControls.frame === 'ECEF') {
+      const osv_ECEF = Frames.osvJ2000ToECEF(osvProp, nutPar)
+      ;[x, y, z] = MathUtils.vecmul(osv_ECEF.r, 0.001)
+    } else if (guiControls.frame === 'J2000') {
+      ;[x, y, z] = MathUtils.vecmul(osvProp.r, 0.001)
+    }
+
+    p.push([x, y, z])
+  }
+
+  lineShaders.setGeometry(p)
+  lineShaders.draw(matrix)
+}
+
+function drawSatellite(satellite, matrix, nutPar) {
+  // Update position in ECEF if needed
+  const osv_ECEF = Frames.osvJ2000ToECEF(satellite.osvProp, nutPar)
+
+  // Extract coordinates and apply color
+  const [x, y, z] = MathUtils.vecmul(osv_ECEF.r, 0.001) // Convert to kilometers
+  let satMatrix = m4.translate(matrix, x, y, z)
+  const factor = 0.01 * guiControls.satelliteScale
+  satMatrix = m4.scale(satMatrix, factor, factor, factor)
+
+  // Draw with satellite's assigned color
+  earthShaders.draw(satMatrix, 0, 0, LST, false, false, false, satellite.color)
 }

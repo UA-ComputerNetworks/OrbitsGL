@@ -10,7 +10,6 @@ SelectList.multiple = true
 SelectList.size = 10 // Show 10 satellite names at once
 
 let satelliteColorMap = {} // Store color for each satellite
-let selectedSatellites = [] // Store final selected satellites
 
 // Function to load the satellite names and colors from the file
 FileInput.onchange = function (event) {

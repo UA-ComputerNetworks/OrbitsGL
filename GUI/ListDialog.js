@@ -80,23 +80,36 @@ ListEnter.onclick = function () {
         lines[indElem * 3 + 1],
         lines[indElem * 3 + 2],
       ])
-      const satrec = sgp4.createTarget(tle)
 
-      satellites.push(satrec)
+      // satRec is different from satrec.
+
+      const satRec = sgp4.createTarget(tle)
+
+      satellites.push(satRec)
       satLines.push([title, tleLine1, tleLine2])
       satelliteNames.push(title)
       autoCompleteTargetList.push(title)
       satNameToIndex[title] = indElem
       satIndexToName.push(title)
 
-      // Store each satellite as an object in satelliteObjects
-      satelliteObjects[title] = {
-        name: title,
-        satrec: satrec,
-        osvProp: null,
-        r_ECEF: [0, 0, 0],
-        v_ECEF: [0, 0, 0],
-        color: [200, 200, 200], // Default color, to be updated in SelectDialog
+      const osvProp = sgp4.propagateTargetTs(satRec, new Date(), 0.0)
+      if (keplerParams && keplerParams.a) {
+        // Only store if valid
+        satelliteObjects[title] = {
+          name: title,
+          satrec: satRec,
+          osvIn: osvProp, // Raw telemetry
+          osvProp: osvProp, // Propagated telemetry
+          kepler: keplerParams, // Keplerian parameters
+          r_ECEF: [0, 0, 0],
+          v_ECEF: [0, 0, 0],
+          alt: 0,
+          lon: 0,
+          lat: 0,
+          color: [200, 200, 200], // Default color, can be updated in SelectDialog
+        }
+      } else {
+        console.warn(`Kepler data missing for ${title}`)
       }
     } catch (error) {
       console.error('Error creating target from TLE:', error)
