@@ -64,6 +64,7 @@ lineShaders.init()
 pointShaders = new PointShaders(gl)
 pointShaders.init()
 
+var satellites = []
 var satLines = []
 var satNameToIndex = []
 var satIndexToName = []
@@ -136,12 +137,6 @@ function drawScene(time) {
   // Use latest telemetry only if enabled. Then, the telemetry set from the UI controls is not
   // overwritten below.
   ISS.osv = createOsv(today)
-
-  // selectedSatellites.forEach((selectedSat) => {
-  //   const satellite = selectedSat.sat
-
-  //   satellite.osv = createOsv(today) // Apply the same logic to all selected satellites
-  // })
 
   let osvSatListTeme = []
   if (enableList) {
@@ -275,27 +270,6 @@ function drawScene(time) {
   // Compute updated keplerian elements from the propagated OSV.
   let kepler_updated = ISS.kepler // Kepler.osvToKepler(ISS.osvProp.r, ISS.osvProp.v, ISS.osvProp.ts);
 
-  // selectedSatellites.forEach((selectedSat) => {
-  //   const satellite = selectedSat.sat
-
-  //   if (satellite) {
-  //     // Ensure OSV is created for each satellite
-  //     satellite.osv = createOsv(today)
-
-  //     // Now, convert OSV to Keplerian elements:
-  //     if (!satellite.kepler) {
-  //       // Only calculate Keplerian elements if they haven't been set already.
-  //       satellite.kepler = Kepler.osvToKepler(
-  //         satellite.osv.r,
-  //         satellite.osv.v,
-  //         satellite.osv.ts
-  //       )
-  //     }
-  //   } else {
-  //     console.error('Satellite object is missing for selected satellite.')
-  //   }
-  // })
-
   let pointsOut = []
   // Convert propagated OSV from J2000 to ECEF frame.
   let osv_ECEF = Frames.osvJ2000ToECEF(ISS.osvProp, nutPar)
@@ -357,51 +331,8 @@ function drawScene(time) {
 
   const matrix = createViewMatrix()
   drawEarth(matrix, rASun, declSun, LST, JT, nutPar)
-  // if (guiControls.enableOrbit) {
-  //   drawOrbit(today, matrix, kepler_updated, nutPar)
-  // }
-
   if (guiControls.enableOrbit) {
-    selectedSatellites.forEach((selectedSat, index) => {
-      const satellite = selectedSat.sat
-
-      if (satellite) {
-        // Update telemetry data
-        satellite.osvIn = createOsv(today)
-
-        // Convert OSV to Keplerian elements
-        satellite.kepler = Kepler.osvToKepler(
-          satellite.osvIn.r,
-          satellite.osvIn.v,
-          satellite.osvIn.ts
-        )
-
-        // Debug statement to verify the satellite object
-        console.log(
-          `Satellite ${index}: ${satellite.name || 'Unnamed'} OSV:`,
-          satellite.osvIn
-        )
-
-        console.log(
-          `Satellite ${index}: ${satellite.name} Position:`,
-          satellite.osvProp.r
-        ) // Log the position
-        console.log(
-          `Satellite ${index}: ${satellite.name} OSV:`,
-          satellite.osvProp
-        )
-
-        // Draw the orbit
-        if (satellite.kepler) {
-          console.log(
-            `Drawing orbit for satellite: ${satellite.name || 'Unnamed'}`
-          )
-          drawOrbit(today, matrix, satellite.kepler, nutPar)
-        }
-      } else {
-        console.warn(`Satellite object is missing for selected satellite.`)
-      }
-    })
+    drawOrbit(today, matrix, kepler_updated, nutPar)
   }
 
   let rotMatrixTeme

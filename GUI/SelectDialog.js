@@ -52,14 +52,14 @@ SelectEnter.onclick = function () {
 
   Array.from(SelectList.selectedOptions).forEach((option) => {
     const satName = option.value
-    const satellite = satellites[satName]
+    const satellite = satelliteObjects[satName]
 
     if (satellite) {
       satellite.color = satelliteColorMap[satName] || [200, 200, 200]
       selectedSatellites.push(satellite)
       console.log(`Selected Satellite: ${satName}, Color: [${satellite.color}]`)
     } else {
-      console.warn(`Satellite ${satName} not found in satellites list`)
+      console.warn(`Satellite ${satName} not found in satelliteObjects`)
     }
   })
 
