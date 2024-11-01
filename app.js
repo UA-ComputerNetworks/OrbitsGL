@@ -1053,16 +1053,20 @@ function drawOrbit(today, satellite, matrix, nutPar) {
   lineShaders.setGeometry(p)
   lineShaders.draw(matrix)
 }
-function drawSatellite(satellite, matrix, nutPar) {
-  // Update position in ECEF if needed
-  const osv_ECEF = Frames.osvJ2000ToECEF(satellite.osvProp, nutPar)
 
-  // Extract coordinates and apply color
-  const [x, y, z] = MathUtils.vecmul(osv_ECEF.r, 0.001) // Convert to kilometers
+function drawSatellite(satellite, matrix, nutPar) {
+  const osv_ECEF = Frames.osvJ2000ToECEF(satellite.osvProp, nutPar)
+  const [x, y, z] = MathUtils.vecmul(osv_ECEF.r, 0.001)
   let satMatrix = m4.translate(matrix, x, y, z)
   const factor = 0.01 * guiControls.satelliteScale
   satMatrix = m4.scale(satMatrix, factor, factor, factor)
 
-  // Draw with satellite's assigned color
+  // Dynamically set color
+  earthShaders.setSatelliteColor(
+    satellite.color[0],
+    satellite.color[1],
+    satellite.color[2]
+  )
+
   earthShaders.draw(satMatrix, 0, 0, LST, false, false, false, satellite.color)
 }

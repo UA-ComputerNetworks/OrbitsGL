@@ -56,117 +56,78 @@ class PlanetShaders {
         `
 
     this.fragShaderSphere = `#version 300 es
-        
-        precision highp float;
-        #define PI 3.1415926538
-        #define A 6378137.0
-        #define B 6356752.314245
-        #define E 0.081819190842965
-        #define R_EARTH 6371000.0
-        
-        // Passed in from the vertex shader.
-        in vec2 v_texcoord;
-        
-        // The texture.
-        uniform sampler2D u_imageDay;
-        uniform sampler2D u_imageNight;
-        uniform bool u_draw_texture;
+    precision highp float;
+    #define PI 3.1415926538
+    #define A 6378137.0
+    #define B 6356752.314245
+    #define E 0.081819190842965
+    #define R_EARTH 6371000.0
 
-        // 
-        uniform float u_decl;
-        uniform float u_rA;
-        uniform float u_LST;
-        uniform float u_iss_x;
-        uniform float u_iss_y;
-        uniform float u_iss_z;
-        uniform bool u_show_iss;
+    in vec2 v_texcoord;
 
-        // we need to declare an output for the fragment shader
-        out vec4 outColor;
-        
-        float deg2rad(in float deg)
-        {
-            return 2.0 * PI * deg / 360.0; 
-        }
+    uniform sampler2D u_imageDay;
+    uniform sampler2D u_imageNight;
+    uniform bool u_draw_texture;
 
-        float rad2deg(in float rad)
-        {
-            return 360.0 * rad / (2.0 * PI);
-        }
-        
-        void main() 
-        {
-            if (u_draw_texture)
-            {
-                float lon = 2.0 * PI * (v_texcoord.x - 0.5);
-                float lat = PI * (0.5 - v_texcoord.y);
-                float LSTlon = u_LST + lon;
-                float h = LSTlon - u_rA;
+    uniform vec3 u_satelliteColor;  // New uniform for satellite color
+    uniform float u_decl;
+    uniform float u_rA;
+    uniform float u_LST;
+    uniform float u_iss_x;
+    uniform float u_iss_y;
+    uniform float u_iss_z;
+    uniform bool u_show_iss;
 
-                // For Intel GPUs, the argument for asin can be outside [-1, 1] unless limited.
-                float altitude = asin(clamp(cos(h)*cos(u_decl)*cos(lat) + sin(u_decl)*sin(lat), -1.0, 1.0));
-                altitude = rad2deg(altitude);
-    
-                if (altitude > 0.0)
-                {
-                    // Day. 
-                    outColor = texture(u_imageDay, v_texcoord);
-                }
-                else if (altitude > -6.0)
-                {
-                    // Civil twilight.
-                    outColor = mix(texture(u_imageNight, v_texcoord), texture(u_imageDay, v_texcoord), 0.75);
-                }
-                else if (altitude > -12.0)
-                {
-                    // Nautical twilight.
-                    outColor = mix(texture(u_imageNight, v_texcoord), texture(u_imageDay, v_texcoord), 0.5);
-                }
-                else if (altitude > -18.0)
-                {
-                    // Astronomical twilight.
-                    outColor = mix(texture(u_imageNight, v_texcoord), texture(u_imageDay, v_texcoord), 0.25);
-                }
-                else
-                {
-                    // Night.
-                    outColor = texture(u_imageNight, v_texcoord);
-                }
+    out vec4 outColor;
 
-                if (u_show_iss)
-                {
-                    float longitude = rad2deg(lon);
-                    float latitude  = rad2deg(lat);
-            
-                    // Surface coordinates.
-                    float sinLat = sin(deg2rad(latitude));
-                    float N = A / sqrt(1.0 - E*E*sinLat*sinLat);
-        
-                    float xECEF = N * cos(deg2rad(latitude)) * cos(deg2rad(longitude));
-                    float yECEF = N * cos(deg2rad(latitude)) * sin(deg2rad(longitude));
-                    float zECEF = (1.0 - E*E) * N * sin(deg2rad(latitude));
-                    float normECEF = sqrt(xECEF * xECEF + yECEF * yECEF + zECEF * zECEF); 
-        
-                    float xDiff = u_iss_x - xECEF;
-                    float yDiff = u_iss_y - yECEF;
-                    float zDiff = u_iss_z - zECEF;
-                    float normDiff = sqrt(xDiff * xDiff + yDiff * yDiff + zDiff * zDiff); 
-        
-                    float dotProduct = xECEF * xDiff + yECEF * yDiff + zECEF * zDiff;
-                    float issAltitude = rad2deg(asin(dotProduct / (normECEF * normDiff)));
-    
-                    if (issAltitude > 0.0)
-                    {
-                        outColor = outColor + vec4(0.2, 0.0, 0.0, 0.0);
-                    }
+    float deg2rad(in float deg) {
+        return 2.0 * PI * deg / 360.0;
+    }
+
+    float rad2deg(in float rad) {
+        return 360.0 * rad / (2.0 * PI);
+    }
+
+    void main() {
+        if (u_draw_texture) {
+            float lon = 2.0 * PI * (v_texcoord.x - 0.5);
+            float lat = PI * (0.5 - v_texcoord.y);
+            float LSTlon = u_LST + lon;
+            float h = LSTlon - u_rA;
+
+            float altitude = asin(clamp(cos(h) * cos(u_decl) * cos(lat) + sin(u_decl) * sin(lat), -1.0, 1.0));
+            altitude = rad2deg(altitude);
+
+            if (altitude > 0.0) {
+                outColor = texture(u_imageDay, v_texcoord);
+            } else if (altitude > -6.0) {
+                outColor = mix(texture(u_imageNight, v_texcoord), texture(u_imageDay, v_texcoord), 0.75);
+            } else if (altitude > -12.0) {
+                outColor = mix(texture(u_imageNight, v_texcoord), texture(u_imageDay, v_texcoord), 0.5);
+            } else if (altitude > -18.0) {
+                outColor = mix(texture(u_imageNight, v_texcoord), texture(u_imageDay, v_texcoord), 0.25);
+            } else {
+                outColor = texture(u_imageNight, v_texcoord);
+            }
+
+            if (u_show_iss) {
+                float longitude = rad2deg(lon);
+                float latitude = rad2deg(lat);
+                float xECEF = A * cos(deg2rad(latitude)) * cos(deg2rad(longitude));
+                float yECEF = A * cos(deg2rad(latitude)) * sin(deg2rad(longitude));
+                float zECEF = B * sin(deg2rad(latitude));
+                float distance = sqrt(pow(u_iss_x - xECEF, 2.0) + pow(u_iss_y - yECEF, 2.0) + pow(u_iss_z - zECEF, 2.0));
+
+                if (distance < 100000.0) { // Arbitrary distance threshold for visibility
+                    
+                    outColor = outColor + vec4(0.2, 0.0, 0.0, 0.0);
                 }
             }
-            else 
-            {
-                outColor = vec4(1.0, 1.0, 1.0, 1.0);
-            }
+        } else {
+            outColor = vec4(u_satelliteColor, 1.0);  // Apply satellite color
         }
-        `
+    }
+`
 
     this.vertShaderGrid = `#version 300 es
             // an attribute is an input (in) to a vertex shader.
@@ -872,5 +833,15 @@ class PlanetShaders {
     }
     xmlHTTP.open('GET', 'json/worldmap.json', true)
     xmlHTTP.send()
+  }
+
+  setSatelliteColor(r, g, b) {
+    const gl = this.gl
+    gl.useProgram(this.program) // Make sure we’re using the right program
+    const satelliteColorLocation = gl.getUniformLocation(
+      this.program,
+      'u_satelliteColor'
+    )
+    gl.uniform3f(satelliteColorLocation, r / 255, g / 255, b / 255) // Normalize color values to [0, 1]
   }
 }
