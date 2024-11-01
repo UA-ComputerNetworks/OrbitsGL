@@ -91,9 +91,12 @@ ListEnter.onclick = function () {
       satNameToIndex[title] = indElem
       satIndexToName.push(title)
 
-      const osvProp = sgp4.propagateTargetTs(satRec, new Date(), 0.0)
+      console.log('Today is ', today)
+
+      const osvProp = sgp4.propagateTargetTs(satRec, today, 0.0)
       // Convert OSV to Keplerian parameters and ensure it is stored under `kepler`.
-      const keplerParams = Kepler.osvToKepler(osvProp.r, osvProp.v, new Date())
+      const keplerParams = Kepler.osvToKepler(osvProp.r, osvProp.v, osvProp.ts)
+
       if (keplerParams && keplerParams.a) {
         // Only store if valid
         satelliteObjects[title] = {

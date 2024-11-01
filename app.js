@@ -74,6 +74,8 @@ let satelliteObjects = []
 
 requestAnimationFrame(drawScene)
 
+let today = null
+
 // Draw the scene.
 function drawScene(time) {
   if (earthShaders.numTextures < 2) {
@@ -93,7 +95,6 @@ function drawScene(time) {
 
   // Compute Julian time.
   let dateNow = new Date()
-  let today = null
 
   if (guiControls.timeWarp) {
     dateDelta += timeControls.warpSeconds.getValue() * 1000
@@ -930,17 +931,17 @@ function drawSatellite(sat, matrix, nutPar) {
   satMatrix = m4.scale(satMatrix, factor, factor, factor)
   earthShaders.draw(satMatrix, 0, 0, LST, false, false, false, sat.color)
 }
-
 function createOsvForSatellite(satellite, today) {
   if (!satellite.satrec || !satellite.satrec.tle) {
     console.error(`Satellite ${satellite.name} is missing TLE data.`)
     return
   }
 
-  console.log('satrec is ', satellite.satrec)
+  console.log(`satrec is:`, satellite.satrec)
   try {
     const osvTeme = sgp4.propagateTargetTs(satellite.satrec, today, 0.0)
     const osvJ2000 = sgp4.coordTemeJ2000(osvTeme)
+
     satellite.osvProp = {
       r: [
         osvJ2000.r[0] * 1000.0,
@@ -954,7 +955,20 @@ function createOsvForSatellite(satellite, today) {
       ],
       ts: today,
     }
-    console.log(`OSV computed for ${satellite.name}`)
+
+    console.log(`OSV computed for ${satellite.name}:`, satellite.osvProp)
+
+    // Create Keplerian parameters from OSV
+    const keplerParams = Kepler.osvToKepler(
+      satellite.osvProp.r,
+      satellite.osvProp.v,
+      satellite.osvProp.ts
+    )
+    keplerParams.ecc_norm = Math.min(keplerParams.ecc_norm, 0.999) // Clamp eccentricity to avoid instability
+
+    satellite.kepler = keplerParams
+
+    console.log(`Kepler parameters for ${satellite.name}:`, satellite.kepler)
   } catch (error) {
     console.error(
       `Error in createOsvForSatellite for ${satellite.name}:`,
@@ -985,16 +999,19 @@ function createOsvForSatellite(satellite, today) {
 //     satellite.osvProp = Kepler.propagate(satellite.kepler, today)
 //   }
 // }
-
 function drawOrbit(today, satellite, matrix, nutPar) {
   if (!satellite.kepler || !satellite.kepler.ts) {
     console.warn(`No Kepler data available for satellite ${satellite.name}`)
     return
   }
 
+  console.log(
+    `Drawing orbit for ${satellite.name} with Kepler parameters`,
+    satellite.kepler
+  )
+
   let p = []
   const period = Kepler.computePeriod(satellite.kepler.a, satellite.kepler.mu)
-
   const jdStep = period / (guiControls.orbitPoints + 0.01)
 
   for (
@@ -1004,25 +1021,38 @@ function drawOrbit(today, satellite, matrix, nutPar) {
   ) {
     const deltaDate = new Date(today.getTime() + 1000 * jdDelta)
 
-    let osvProp = Kepler.propagate(satellite.kepler, deltaDate)
-    let x = 0,
-      y = 0,
-      z = 0
+    try {
+      // Log eccentricity and ts before propagation
+      console.log(
+        `Propagating for ${satellite.name} at ${deltaDate}, ecc_norm: ${satellite.kepler.ecc_norm}, ts: ${satellite.kepler.ts}`
+      )
 
-    if (guiControls.frame === 'ECEF') {
-      const osv_ECEF = Frames.osvJ2000ToECEF(osvProp, nutPar)
-      ;[x, y, z] = MathUtils.vecmul(osv_ECEF.r, 0.001)
-    } else if (guiControls.frame === 'J2000') {
-      ;[x, y, z] = MathUtils.vecmul(osvProp.r, 0.001)
+      const osvProp = Kepler.propagate(satellite.kepler, deltaDate)
+      let x = 0,
+        y = 0,
+        z = 0
+
+      if (guiControls.frame === 'ECEF') {
+        const osv_ECEF = Frames.osvJ2000ToECEF(osvProp, nutPar)
+        ;[x, y, z] = MathUtils.vecmul(osv_ECEF.r, 0.001)
+      } else if (guiControls.frame === 'J2000') {
+        ;[x, y, z] = MathUtils.vecmul(osvProp.r, 0.001)
+      }
+
+      p.push([x, y, z])
+    } catch (error) {
+      console.error(
+        `Propagation error for ${satellite.name} at ${deltaDate}:`,
+        error
+      )
+      continue
     }
-
-    p.push([x, y, z])
   }
 
+  console.log(`Orbit points for ${satellite.name}:`, p)
   lineShaders.setGeometry(p)
   lineShaders.draw(matrix)
 }
-
 function drawSatellite(satellite, matrix, nutPar) {
   // Update position in ECEF if needed
   const osv_ECEF = Frames.osvJ2000ToECEF(satellite.osvProp, nutPar)
