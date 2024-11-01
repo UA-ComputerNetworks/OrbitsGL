@@ -1,47 +1,15 @@
 // Handling of TLE input dialog.
 const TLEEnter = document.getElementById('TLEEnter')
 const TLECancel = document.getElementById('TLECancel')
-const TLEfileInput = document.getElementById('TLEfile') // Added file input
 
 TLEEnter.onclick = function () {
   const TLEcontainer = document.getElementById('TLEcontainer')
   const TLEinput = document.getElementById('TLEinput')
   TLEcontainer.style.visibility = 'hidden'
 
-  // Check if a file is selected
-  if (TLEfileInput.files.length > 0) {
-    const file = TLEfileInput.files[0]
-    const reader = new FileReader()
-
-    // Read the file content and process it
-    reader.onload = function (event) {
-      const fileContent = event.target.result
-      console.log('File content:', fileContent) // Debugging: log file content to ensure it's read correctly
-      processTLE2(fileContent) // Ensure we only process after file is fully read
-    }
-
-    // Read the file as text
-    reader.readAsText(file)
-  } else {
-    // If no file is selected, use the textarea value
-    const tleIn = TLEinput.value
-    processTLE(tleIn)
-  }
-}
-
-// Cancel button: reset both the textarea and file input
-TLECancel.onclick = function () {
-  const TLEcontainer = document.getElementById('TLEcontainer')
-  const TLEinput = document.getElementById('TLEinput')
-  TLEcontainer.style.visibility = 'hidden'
-  TLEinput.value = '' // Clear the textarea
-  TLEfileInput.value = '' // Clear the file input
-}
-
-// Process TLE data (common function for both textarea and file input)
-function processTLE(tleIn) {
+  const tleIn = TLEinput.value
   const lines = tleIn.split('\n')
-  console.log('TLE lines:', lines) // Debugging: log lines to ensure it's split correctly
+  console.log(lines)
 
   if (lines.length >= 3) {
     const targetName = lines[0]
@@ -63,7 +31,6 @@ function processTLE(tleIn) {
     window.alert('Not enough lines.')
   }
 }
-
 TLECancel.onclick = function () {
   const TLEcontainer = document.getElementById('TLEcontainer')
   TLEcontainer.style.visibility = 'hidden'

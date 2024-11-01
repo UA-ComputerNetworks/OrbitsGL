@@ -64,7 +64,6 @@ lineShaders.init()
 pointShaders = new PointShaders(gl)
 pointShaders.init()
 
-var satellites = []
 var satLines = []
 var satNameToIndex = []
 var satIndexToName = []
