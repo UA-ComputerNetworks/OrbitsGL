@@ -416,6 +416,8 @@ function drawScene(time) {
   // Call drawScene again next frame
   requestAnimationFrame(drawScene)
 
+  drawISLLines(matrix, nutPar, today)
+
   drawing = false
 }
 
@@ -931,6 +933,7 @@ function drawSatellite(sat, matrix, nutPar) {
   satMatrix = m4.scale(satMatrix, factor, factor, factor)
   earthShaders.draw(satMatrix, 0, 0, LST, false, false, false, sat.color)
 }
+
 function createOsvForSatellite(satellite, today) {
   if (!satellite.satrec || !satellite.satrec.tle) {
     console.error(`Satellite ${satellite.name} is missing TLE data.`)
@@ -1069,4 +1072,83 @@ function drawSatellite(satellite, matrix, nutPar) {
   )
 
   earthShaders.draw(satMatrix, 0, 0, LST, false, false, false, satellite.color)
+}
+
+function drawISLLines(matrix, nutPar, today) {
+  islData.links.forEach(({ satellite1, satellite2 }) => {
+    const sat1 = satelliteObjects[satellite1]
+    const sat2 = satelliteObjects[satellite2]
+
+    // Check and generate ISL-specific OSV if missing
+    if (sat1 && !sat1.osvPropISL) {
+      createOsvForISLSatellite(sat1, today)
+    }
+    if (sat2 && !sat2.osvPropISL) {
+      createOsvForISLSatellite(sat2, today)
+    }
+
+    if (sat1 && sat2 && sat1.osvProp && sat2.osvProp) {
+      // Proceed with ISL rendering if ISL-specific OSV data is available
+      const osv1 = Frames.osvJ2000ToECEF(sat1.osvProp, nutPar)
+      const osv2 = Frames.osvJ2000ToECEF(sat2.osvProp, nutPar)
+
+      const [x1, y1, z1] = MathUtils.vecmul(osv1.r, 0.001)
+      const [x2, y2, z2] = MathUtils.vecmul(osv2.r, 0.001)
+
+      const linePoints = [
+        [x1, y1, z1],
+        [x2, y2, z2],
+      ]
+
+      // Apply ISL styling or fallback to defaults
+      // //const color = islData.style.color
+      // .split(',')
+      // .map((c) => parseInt(c.trim()))
+      //const width = islData.style.width
+      const color = [255, 0, 0]
+
+      lineShaders.setGeometry(linePoints, color)
+      //lineShaders.setStyle(width, islData.style.style)
+      lineShaders.draw(matrix)
+    } else {
+      console.warn(
+        `ISL not drawn: Missing data for ${satellite1} or ${satellite2}`
+      )
+    }
+  })
+}
+
+function createOsvForISLSatellite(satellite, today) {
+  if (!satellite.satrec || !satellite.satrec.tle) {
+    console.error(`Satellite ${satellite.name} is missing TLE data for ISL.`)
+    return
+  }
+
+  try {
+    // Generate OSV in TEME and convert to J2000
+    const osvTeme = sgp4.propagateTargetTs(satellite.satrec, today, 0.0)
+    const osvJ2000 = sgp4.coordTemeJ2000(osvTeme)
+
+    satellite.osvProp = {
+      // This is specifically for ISL functionality
+      r: [
+        osvJ2000.r[0] * 1000.0,
+        osvJ2000.r[1] * 1000.0,
+        osvJ2000.r[2] * 1000.0,
+      ],
+      v: [
+        osvJ2000.v[0] * 1000.0,
+        osvJ2000.v[1] * 1000.0,
+        osvJ2000.v[2] * 1000.0,
+      ],
+      ts: new Date(today), // Ensure the timestamp is set with a valid Date object
+    }
+
+    console.log(`ISL OSV computed for ${satellite.name}:`, satellite.osvPropISL)
+  } catch (error) {
+    console.error(
+      `Error in createOsvForISLSatellite for ${satellite.name}:`,
+      error
+    )
+  }
 }
