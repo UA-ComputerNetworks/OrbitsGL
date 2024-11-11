@@ -617,4 +617,18 @@ function createControls() {
     .name('Mean Anomaly')
 
   gui.add(guiControls, 'GitHub')
+
+  // Define upload functions in guiControls
+  guiControls.uploadISLFile = function () {
+    document.getElementById('ISLFileInput').click() // Trigger hidden ISL file input
+  }
+
+  guiControls.uploadISLStyleFile = function () {
+    document.getElementById('ISLStyleFileInput').click() // Trigger hidden style file input
+  }
+
+  // Add an "Inter-Satellite Links" folder to GUI
+  const islFolder = gui.addFolder('Inter-Satellite Links')
+  islFolder.add(guiControls, 'uploadISLFile').name('Upload ISL File')
+  islFolder.add(guiControls, 'uploadISLStyleFile').name('Upload ISL Style File')
 }

@@ -51,6 +51,19 @@
             
             
         </div>
+        
+
+            <!-- Container for ISL Upload Section -->
+        <div id="ISLUploadContainer">
+            <h3>Inter-Satellite Link (ISL) Upload</h3>
+            <label for="ISLFileInput">Upload ISL File (Satellite Links):</label><br>
+            <input type="file" id="ISLFileInput" accept=".txt" onchange="handleISLFileUpload(event)"><br><br>
+
+            <label for="ISLStyleFileInput">Upload ISL Style File (Optional):</label><br>
+            <input type="file" id="ISLStyleFileInput" accept=".txt" onchange="handleISLStyleFileUpload(event)"><br><br>
+        </div>
+
+
     </div>
     <div id="autoCompleteContainer">
         <div class="autoComplete_wrapper">
@@ -88,5 +101,7 @@
     <script src="shaders/PointShaders.js"></script>
     <script src="shaders/PlanetShaders.js"></script>
     <script src="app.js"></script>
+        <!-- Link to ISL Upload JavaScript -->
+    <script src="GUI/islUpload.js"></script>
     </body>
 </html>
