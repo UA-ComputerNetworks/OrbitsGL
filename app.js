@@ -916,23 +916,23 @@ function checkIntersection(source, target, radius) {
   return false
 }
 
-function drawSatellite(sat, matrix, nutPar) {
-  const osv_ECEF = Frames.osvJ2000ToECEF(sat, nutPar)
+// function drawSatellite(sat, matrix, nutPar) {
+//   const osv_ECEF = Frames.osvJ2000ToECEF(sat, nutPar)
 
-  // Define drawing positions
-  const [x, y, z] = MathUtils.vecmul(osv_ECEF.r, 0.001) // Convert to kilometers for display
+//   // Define drawing positions
+//   const [x, y, z] = MathUtils.vecmul(osv_ECEF.r, 0.001) // Convert to kilometers for display
 
-  // Draw orbit path if enabled
-  if (guiControls.enableOrbit) {
-    drawOrbit(sat, matrix, nutPar)
-  }
+//   // Draw orbit path if enabled
+//   if (guiControls.enableOrbit) {
+//     drawOrbit(sat, matrix, nutPar)
+//   }
 
-  // Draw satellite marker with color
-  let satMatrix = m4.translate(matrix, x, y, z)
-  const factor = 0.01 * guiControls.satelliteScale
-  satMatrix = m4.scale(satMatrix, factor, factor, factor)
-  earthShaders.draw(satMatrix, 0, 0, LST, false, false, false, sat.color)
-}
+//   // Draw satellite marker with color
+//   let satMatrix = m4.translate(matrix, x, y, z)
+//   const factor = 0.01 * guiControls.satelliteScale
+//   satMatrix = m4.scale(satMatrix, factor, factor, factor)
+//   earthShaders.draw(satMatrix, 0, 0, LST, false, false, false, sat.color)
+// }
 
 function createOsvForSatellite(satellite, today) {
   if (!satellite.satrec || !satellite.satrec.tle) {
@@ -1057,29 +1057,38 @@ function drawOrbit(today, satellite, matrix, nutPar) {
   lineShaders.draw(matrix)
 }
 
-function drawSatellite(satellite, matrix, nutPar) {
+function drawSatellite(
+  satellite,
+  matrix,
+  nutPar,
+  customColor = null,
+  customScale = null
+) {
   const osv_ECEF = Frames.osvJ2000ToECEF(satellite.osvProp, nutPar)
   const [x, y, z] = MathUtils.vecmul(osv_ECEF.r, 0.001)
   let satMatrix = m4.translate(matrix, x, y, z)
-  const factor = 0.01 * guiControls.satelliteScale
+
+  // Apply custom scale if provided
+  const factor = (customScale || 0.01) * guiControls.satelliteScale
   satMatrix = m4.scale(satMatrix, factor, factor, factor)
 
-  // Dynamically set color
-  earthShaders.setSatelliteColor(
-    satellite.color[0],
-    satellite.color[1],
-    satellite.color[2]
-  )
+  // Apply custom color if provided
+  const color = customColor || satellite.color || [200, 200, 200] // Default color if not set
 
-  earthShaders.draw(satMatrix, 0, 0, LST, false, false, false, satellite.color)
+  earthShaders.setSatelliteColor(color[0], color[1], color[2])
+  earthShaders.draw(satMatrix, 0, 0, LST, false, false, false, color)
 }
 
 function drawISLLines(matrix, nutPar, today) {
+  const highlightColor1 = [0, 255, 0] // Green for one end
+  const highlightColor2 = [0, 0, 255] // Blue for the other end
+  const satelliteScale = 0.02 // Scale to avoid oversized satellites
+  const lineThickness = 3.0 // Adjust line thickness
+
   islData.links.forEach(({ satellite1, satellite2 }) => {
     const sat1 = satelliteObjects[satellite1]
     const sat2 = satelliteObjects[satellite2]
 
-    // Check and generate ISL-specific OSV if missing
     if (sat1 && !sat1.osvPropISL) {
       createOsvForISLSatellite(sat1, today)
     }
@@ -1088,7 +1097,9 @@ function drawISLLines(matrix, nutPar, today) {
     }
 
     if (sat1 && sat2 && sat1.osvProp && sat2.osvProp) {
-      // Proceed with ISL rendering if ISL-specific OSV data is available
+      drawSatellite(sat1, matrix, nutPar, highlightColor1, satelliteScale)
+      drawSatellite(sat2, matrix, nutPar, highlightColor2, satelliteScale)
+
       const osv1 = Frames.osvJ2000ToECEF(sat1.osvProp, nutPar)
       const osv2 = Frames.osvJ2000ToECEF(sat2.osvProp, nutPar)
 
@@ -1100,15 +1111,10 @@ function drawISLLines(matrix, nutPar, today) {
         [x2, y2, z2],
       ]
 
-      // Apply ISL styling or fallback to defaults
-      // //const color = islData.style.color
-      // .split(',')
-      // .map((c) => parseInt(c.trim()))
-      //const width = islData.style.width
-      const color = [255, 0, 0]
+      const color = [255, 0, 0] // Red for ISL lines
 
+      lineShaders.setStyle(20.0, 'solid') // Sets the line thickness to 5.0
       lineShaders.setGeometry(linePoints, color)
-      //lineShaders.setStyle(width, islData.style.style)
       lineShaders.draw(matrix)
     } else {
       console.warn(
