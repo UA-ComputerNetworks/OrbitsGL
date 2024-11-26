@@ -63,6 +63,14 @@
             <input type="file" id="ISLStyleFileInput" accept=".txt" onchange="handleISLStyleFileUpload(event)"><br><br>
         </div>
 
+                <!-- Container for TLE Upload Section -->
+        <!-- Container for TLE Upload Section -->
+        <div id="TLEUploadContainer" style="display: none;">
+            <h3>TLE Multiple file Upload</h3>
+            <input type="file" id="TLEMultipleFileInput" multiple accept=".txt,.tle">
+            <button id="processTLEFilesButton">Process TLE Files</button>
+        </div>
+
 
     </div>
     <div id="autoCompleteContainer">
@@ -103,5 +111,6 @@
     <script src="app.js"></script>
         <!-- Link to ISL Upload JavaScript -->
     <script src="GUI/islUpload.js"></script>
+    <script src="GUI/tleUpload.js"></script>
     </body>
 </html>
