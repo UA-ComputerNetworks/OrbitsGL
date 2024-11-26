@@ -1113,7 +1113,7 @@ function drawISLLines(matrix, nutPar, today) {
 
       const color = [255, 0, 0] // Red for ISL lines
 
-      lineShaders.setStyle(20.0, 'solid') // Sets the line thickness to 5.0
+      lineShaders.setStyle(5, 'solid') // Sets the line thickness to 5.0
       lineShaders.setGeometry(linePoints, color)
       lineShaders.draw(matrix)
     } else {
