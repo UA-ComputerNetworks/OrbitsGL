@@ -1,7 +1,7 @@
 // Object to store ISL data and styles with default settings
 const islData = {
   links: [],
-  style: { color: [255, 255, 255], style: 'solid', width: 2 }, // Default style as an RGB array
+  style: { color: [255, 255, 255], style: 'solid', width: 10 }, // Default style as an RGB array
 }
 
 // Function to handle ISL file upload

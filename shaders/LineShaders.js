@@ -107,7 +107,7 @@ class LineShaders {
     gl.bufferData(gl.ARRAY_BUFFER, colorArray, gl.STATIC_DRAW)
   }
 
-  setStyle(width = 2.0, style = 'solid') {
+  setStyle(width = 10.0, style = 'solid') {
     this.lineWidth = width // Default to 2.0 if not provided
     this.lineStyle = style // Default to "solid"
 
