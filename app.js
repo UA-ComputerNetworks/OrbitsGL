@@ -1125,12 +1125,36 @@ function createOsvForISLSatellite(satellite, today) {
   }
 
   try {
-    // Generate OSV in TEME and convert to J2000
+    // Step 1: Propagate satellite using SGP4
     const osvTeme = sgp4.propagateTargetTs(satellite.satrec, today, 0.0)
-    const osvJ2000 = sgp4.coordTemeJ2000(osvTeme)
+    if (!osvTeme || !osvTeme.r || !osvTeme.v) {
+      console.error(`SGP4 propagation failed for satellite ${satellite.name}.`)
+      return
+    }
 
+    if (
+      Math.abs(osvTeme.r[0]) > 100000 ||
+      Math.abs(osvTeme.r[1]) > 100000 ||
+      Math.abs(osvTeme.r[2]) > 100000
+    ) {
+      console.warn(
+        `Propagation resulted in unrealistic position for satellite ${satellite.name}.`,
+        osvTeme
+      )
+      return
+    }
+
+    // Step 2: Convert TEME to J2000
+    const osvJ2000 = sgp4.coordTemeJ2000(osvTeme)
+    if (!osvJ2000 || !osvJ2000.r || !osvJ2000.v) {
+      console.error(
+        `TEME to J2000 conversion failed for satellite ${satellite.name}.`
+      )
+      return
+    }
+
+    // Step 3: Assign OSV data to satellite
     satellite.osvProp = {
-      // This is specifically for ISL functionality
       r: [
         osvJ2000.r[0] * 1000.0,
         osvJ2000.r[1] * 1000.0,
@@ -1144,7 +1168,7 @@ function createOsvForISLSatellite(satellite, today) {
       ts: new Date(today), // Ensure the timestamp is set with a valid Date object
     }
 
-    console.log(`ISL OSV computed for ${satellite.name}:`, satellite.osvPropISL)
+    console.log(`ISL OSV computed for ${satellite.name}:`, satellite.osvProp)
   } catch (error) {
     console.error(
       `Error in createOsvForISLSatellite for ${satellite.name}:`,
