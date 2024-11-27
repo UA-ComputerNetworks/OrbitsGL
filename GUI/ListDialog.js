@@ -73,6 +73,19 @@ ListEnter.onclick = function () {
 
     console.log(`TLE Element ${indElem}:`, title, tleLine1, tleLine2)
 
+    // Parse the epoch time from the TLE (first satellite only)
+    if (indElem === 0) {
+      const epochString = tleLine1.substring(18, 32).trim()
+      const year = parseInt(epochString.substring(0, 2), 10)
+      const days = parseFloat(epochString.substring(2))
+      const fullYear = year < 57 ? 2000 + year : 1900 + year
+
+      const epochDate = new Date(fullYear, 0) // Start of the year
+      epochDate.setDate(days) // Add fractional days
+      firstSatelliteEpoch = epochDate
+      console.log('Epoch time of the first satellite:', firstSatelliteEpoch)
+    }
+
     try {
       const tle = sgp4.tleFromLines([
         lines[indElem * 3],

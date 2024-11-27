@@ -72,6 +72,8 @@ var satIndexToName = []
 var selectedSatellites = [] // Assuming this is populated from SelectDialog.
 let satelliteObjects = []
 
+var firstSatelliteEpoch = null // for the epoch time.
+
 requestAnimationFrame(drawScene)
 
 let today = null
@@ -136,6 +138,10 @@ function drawScene(time) {
     timeControls.hourControl.setValue(today.getHours())
     timeControls.minuteControl.setValue(today.getMinutes())
     timeControls.secondControl.setValue(today.getSeconds())
+  }
+
+  if (satellites.length > 0) {
+    today = firstSatelliteEpoch
   }
 
   // Use latest telemetry only if enabled. Then, the telemetry set from the UI controls is not
