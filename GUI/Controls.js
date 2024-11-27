@@ -631,25 +631,4 @@ function createControls() {
   const islFolder = gui.addFolder('Inter-Satellite Links')
   islFolder.add(guiControls, 'uploadISLFile').name('Upload ISL File')
   islFolder.add(guiControls, 'uploadISLStyleFile').name('Upload ISL Style File')
-
-  // guiControls.uploadTLEFiles = function () {
-  //   const tleFileInput = document.getElementById('TLEFileInput')
-  //   if (tleFileInput) {
-  //     tleFileInput.click() // Simulate a click to open file dialog
-  //   } else {
-  //     console.warn('TLEFileInput element not found.')
-  //   }
-  // }
-
-  guiControls.uploadTLEFiles = function () {
-    const tleFileInput = document.getElementById('TLEMultipleFileInput')
-    if (tleFileInput) {
-      tleFileInput.click() // Simulate a click to open file dialog
-    } else {
-      console.warn('TLEFileInput element not found.')
-    }
-  }
-
-  const tleUploadFolder = gui.addFolder('Multiple TLE Files')
-  tleUploadFolder.add(guiControls, 'uploadTLEFiles').name('Toggle TLE Upload')
 }
