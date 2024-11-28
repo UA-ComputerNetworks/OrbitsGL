@@ -345,7 +345,10 @@ function drawScene(time) {
   // Draw selected satellites
   selectedSatellites.forEach((satellite) => {
     createOsvForSatellite(satellite, today)
-    drawOrbit(today, satellite, matrix, nutPar)
+    if (guiControls.enableOrbit) {
+      drawOrbit(today, satellite, matrix, nutPar)
+    }
+
     drawSatellite(satellite, matrix, nutPar)
   })
 

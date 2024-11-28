@@ -246,7 +246,7 @@ function createControls() {
   osvControls.targetName = gui
     .add(guiControls, 'targetName')
     .name('Target Name')
-  osvControls.insertTLE = gui.add(guiControls, 'insertTLE').name('Insert TLE')
+  //osvControls.insertTLE = gui.add(guiControls, 'insertTLE').name('Insert TLE')
   osvControls.insertList = gui
     .add(guiControls, 'insertList')
     .name('Insert TLE List')
