@@ -74,6 +74,8 @@ let satelliteObjects = []
 
 var firstSatelliteEpoch = null // for the epoch time.
 
+let guiTimeUpdated = false // Add this at the top of app.js or globally
+
 requestAnimationFrame(drawScene)
 
 let today = null
@@ -140,8 +142,26 @@ function drawScene(time) {
     timeControls.secondControl.setValue(today.getSeconds())
   }
 
-  if (satellites.length > 0) {
+  if (satellites.length > 0 && firstSatelliteEpoch && !guiTimeUpdated) {
+    // Use the epoch time of the first satellite
     today = firstSatelliteEpoch
+
+    // Update GUI time controls
+    timeControls.yearControl.setValue(firstSatelliteEpoch.getFullYear())
+    timeControls.monthControl.setValue(firstSatelliteEpoch.getMonth() + 1) // Months are 0-based
+    timeControls.dayControl.setValue(firstSatelliteEpoch.getDate())
+    timeControls.hourControl.setValue(firstSatelliteEpoch.getHours())
+    timeControls.minuteControl.setValue(firstSatelliteEpoch.getMinutes())
+    timeControls.secondControl.setValue(firstSatelliteEpoch.getSeconds())
+
+    // Log to confirm
+    console.log(
+      'GUI time updated to first satellite epoch:',
+      firstSatelliteEpoch
+    )
+
+    // Set the flag to prevent multiple updates
+    guiTimeUpdated = true
   }
 
   // Use latest telemetry only if enabled. Then, the telemetry set from the UI controls is not
