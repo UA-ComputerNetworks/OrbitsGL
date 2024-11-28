@@ -1024,7 +1024,13 @@ function drawOrbit(today, satellite, matrix, nutPar) {
 
   let p = []
   const period = Kepler.computePeriod(satellite.kepler.a, satellite.kepler.mu)
-  const jdStep = period / (guiControls.orbitPoints + 0.01)
+
+  // Reduce the number of points by increasing the step size
+  const reducedOrbitPoints = Math.max(
+    500,
+    Math.floor(guiControls.orbitPoints / 2)
+  ) // Reduce points
+  const jdStep = period / (reducedOrbitPoints + 0.01)
 
   for (
     let jdDelta = -period * guiControls.orbitsBefore;
@@ -1034,11 +1040,6 @@ function drawOrbit(today, satellite, matrix, nutPar) {
     const deltaDate = new Date(today.getTime() + 1000 * jdDelta)
 
     try {
-      // Log eccentricity and ts before propagation
-      console.log(
-        `Propagating for ${satellite.name} at ${deltaDate}, ecc_norm: ${satellite.kepler.ecc_norm}, ts: ${satellite.kepler.ts}`
-      )
-
       const osvProp = Kepler.propagate(satellite.kepler, deltaDate)
       let x = 0,
         y = 0,
