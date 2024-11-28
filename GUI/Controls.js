@@ -256,8 +256,23 @@ function createControls() {
     .add(guiControls, 'insertList')
     .name('Insert TLE List')
   osvControls.selectTLE = gui.add(guiControls, 'selectTLE').name('Select TLE')
-  osvControls.insertOSV = gui.add(guiControls, 'insertOSV').name('Insert OSV')
-  osvControls.exportOSV = gui.add(guiControls, 'exportOSV').name('Export OSV')
+
+  // Moving ISL features to the top.
+
+  // Define upload functions in guiControls
+  guiControls.uploadISLFile = function () {
+    document.getElementById('ISLFileInput').click() // Trigger hidden ISL file input
+  }
+
+  guiControls.uploadISLStyleFile = function () {
+    document.getElementById('ISLStyleFileInput').click() // Trigger hidden style file input
+  }
+
+  // Add an "Inter-Satellite Links" folder to GUI
+  const islFolder = gui.addFolder('Inter-Satellite Links')
+  islFolder.add(guiControls, 'uploadISLFile').name('Upload ISL File')
+  islFolder.add(guiControls, 'uploadISLStyleFile').name('Upload ISL Style File')
+
   osvControls.source = gui
     .add(guiControls, 'source', ['Telemetry', 'OEM', 'TLE', 'OSV'])
     .name('Data Source')
@@ -623,17 +638,8 @@ function createControls() {
 
   gui.add(guiControls, 'GitHub')
 
-  // Define upload functions in guiControls
-  guiControls.uploadISLFile = function () {
-    document.getElementById('ISLFileInput').click() // Trigger hidden ISL file input
-  }
+  // Keeping the OSV features in the bottom.
 
-  guiControls.uploadISLStyleFile = function () {
-    document.getElementById('ISLStyleFileInput').click() // Trigger hidden style file input
-  }
-
-  // Add an "Inter-Satellite Links" folder to GUI
-  const islFolder = gui.addFolder('Inter-Satellite Links')
-  islFolder.add(guiControls, 'uploadISLFile').name('Upload ISL File')
-  islFolder.add(guiControls, 'uploadISLStyleFile').name('Upload ISL Style File')
+  osvControls.insertOSV = gui.add(guiControls, 'insertOSV').name('Insert OSV')
+  osvControls.exportOSV = gui.add(guiControls, 'exportOSV').name('Export OSV')
 }
