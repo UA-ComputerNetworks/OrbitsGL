@@ -133,8 +133,6 @@ function drawScene(time) {
       dateDelta
   )
 
-  console.log('Trigger 2\n')
-
   // Update GUI time display to reflect "today" (without triggering configureTime)
   timeControls.yearControl.setValue(today.getFullYear(), false)
   timeControls.monthControl.setValue(today.getMonth() + 1, false)
@@ -1098,9 +1096,9 @@ function drawSatellite(
 }
 
 function drawISLLines(matrix, nutPar, today) {
-  const highlightColor1 = [0, 255, 0] // Green for one end
-  const highlightColor2 = [0, 0, 255] // Blue for the other end
-  const satelliteScale = 0.02 // Scale to avoid oversized satellites
+  const highlightColor1 = [255, 255, 0] // Green for one end
+
+  const satelliteScale = 0.01 // Scale to avoid oversized satellites
   const lineThickness = 3.0 // Adjust line thickness
 
   islData.links.forEach(({ satellite1, satellite2 }) => {
@@ -1116,7 +1114,7 @@ function drawISLLines(matrix, nutPar, today) {
 
     if (sat1 && sat2 && sat1.osvProp && sat2.osvProp) {
       drawSatellite(sat1, matrix, nutPar, highlightColor1, satelliteScale)
-      drawSatellite(sat2, matrix, nutPar, highlightColor2, satelliteScale)
+      drawSatellite(sat2, matrix, nutPar, highlightColor1, satelliteScale)
 
       const osv1 = Frames.osvJ2000ToECEF(sat1.osvProp, nutPar)
       const osv2 = Frames.osvJ2000ToECEF(sat2.osvProp, nutPar)
