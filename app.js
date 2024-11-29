@@ -1069,7 +1069,8 @@ function drawOrbit(today, satellite, matrix, nutPar) {
   }
 
   console.log(`Orbit points for ${satellite.name}:`, p)
-  lineShaders.setGeometry(p)
+  const color = [0, 255, 255] // Blue for ISL lines
+  lineShaders.setGeometry(p, color)
   lineShaders.draw(matrix)
 }
 
