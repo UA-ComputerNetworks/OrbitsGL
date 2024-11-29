@@ -99,23 +99,25 @@ function drawScene(time) {
   // Compute Julian time.
   let dateNow = new Date()
 
-  if (guiControls.timeWarp) {
-    dateDelta += timeControls.warpSeconds.getValue() * 1000
-    //console.log(dateDelta);
-  }
+  // if (guiControls.timeWarp) {
+  //   dateDelta += timeControls.warpSeconds.getValue() * 1000
+  //   //console.log(dateDelta);
+  // }
 
   // If date and time updates are disabled, set date manually from the GUI controls:
-  if (!guiControls.enableClock) {
-    dateNow = new Date(
-      guiControls.dateYear,
-      parseInt(guiControls.dateMonth) - 1,
-      guiControls.dateDay,
-      guiControls.timeHour,
-      guiControls.timeMinute,
-      guiControls.timeSecond
-    )
+  // If "enableClock" (Start from Present Time) is checked, use the current system time.
+  // Otherwise, use the epoch time of the first satellite.
+  if (guiControls.enableClock) {
+    dateNow = new Date() // Use current time
+  } else if (satellites.length > 0) {
+    if (!firstSatelliteEpoch) {
+      console.warn('No epoch time available for the first satellite.')
+    }
+    dateNow = new Date(firstSatelliteEpoch) // Use epoch time of the first satellite
+  }
 
-    // Value of dateNow is set from controls above.
+  // Apply manual GUI-based adjustments if "enableClock" is unchecked
+  if (!guiControls.enableClock) {
     today = new Date(
       dateNow.getTime() +
         24 * 3600 * 1000 * guiControls.deltaDays +
@@ -141,9 +143,14 @@ function drawScene(time) {
     timeControls.secondControl.setValue(today.getSeconds())
   }
 
-  if (satellites.length > 0) {
-    today = firstSatelliteEpoch
+  // Handle "time warp" independently
+  if (guiControls.timeWarp) {
+    dateDelta += guiControls.warpSeconds * 1000
   }
+
+  // if (satellites.length > 0) {
+  //   today = firstSatelliteEpoch
+  // }
 
   // Use latest telemetry only if enabled. Then, the telemetry set from the UI controls is not
   // overwritten below.
