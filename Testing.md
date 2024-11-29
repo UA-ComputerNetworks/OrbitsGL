@@ -35,16 +35,12 @@
 2. Upload the required files:
    - **TLE File:** `Starlink_70_20231030160003.txt` via **Insert TLE List**.
    - **ISL File:** `ISL_Satellites.txt` via the **ISL Upload** option.
-   - **Optional ISL Style File:** `ISL_Style.txt` via the **ISL Style Upload** option.
 3. Verify the visualization:
    - Links between the satellites specified in `ISL_Satellites.txt` should appear.
-   - Styling (color, width) applies if `ISL_Style.txt` is uploaded.
 
 ### Expected Results:
 
 - ISL connections render between specified satellite pairs.
-- The links display with default styles if no style file is uploaded.
-- Links reflect the styles (color, width) provided in `ISL_Style.txt`.
 
 ---
 
