@@ -99,20 +99,15 @@ function drawScene(time) {
   // Compute Julian time.
   let dateNow = new Date()
 
-  if (guiControls.timeWarp) {
-    // Always apply timeWarp (independent of enableClock)
-    dateDelta += timeControls.warpSeconds.getValue() * 1000
-  }
-
-  // Determine base "dateNow"
+  // Calculate base time (dateNow)
   if (guiControls.enableClock) {
-    dateNow = new Date() // Use current system time
+    // Use current system time if "Enable Clock" is ON
+    dateNow = new Date()
   } else if (satellites.length > 0 && firstSatelliteEpoch) {
-    dateNow = new Date(firstSatelliteEpoch) // Use first satellite epoch time
+    // Use epoch time of the first satellite if available
+    dateNow = new Date(firstSatelliteEpoch)
   } else {
-    console.warn(
-      'No firstSatelliteEpoch available. Falling back to manual GUI time.'
-    )
+    // Fallback to manual time from GUI if no epoch is available
     dateNow = new Date(
       guiControls.dateYear,
       parseInt(guiControls.dateMonth) - 1,
@@ -123,25 +118,30 @@ function drawScene(time) {
     )
   }
 
-  // Calculate "today" with timeWarp and GUI adjustments
+  // Increment time with time warp if enabled
+  if (guiControls.timeWarp) {
+    dateDelta += timeControls.warpSeconds.getValue() * 1000
+  }
+
+  // Calculate "today" using base time and adjustments
   today = new Date(
     dateNow.getTime() +
       24 * 3600 * 1000 * guiControls.deltaDays +
       3600 * 1000 * guiControls.deltaHours +
       60 * 1000 * guiControls.deltaMins +
       1000 * guiControls.deltaSecs +
-      dateDelta // Add timeWarp adjustment
+      dateDelta
   )
 
-  // Update GUI to reflect the current simulation time
-  if (guiControls.enableClock) {
-    timeControls.yearControl.setValue(today.getFullYear())
-    timeControls.monthControl.setValue(today.getMonth() + 1)
-    timeControls.dayControl.setValue(today.getDate())
-    timeControls.hourControl.setValue(today.getHours())
-    timeControls.minuteControl.setValue(today.getMinutes())
-    timeControls.secondControl.setValue(today.getSeconds())
-  }
+  console.log('Trigger 2\n')
+
+  // Update GUI time display to reflect "today" (without triggering configureTime)
+  timeControls.yearControl.setValue(today.getFullYear(), false)
+  timeControls.monthControl.setValue(today.getMonth() + 1, false)
+  timeControls.dayControl.setValue(today.getDate(), false)
+  timeControls.hourControl.setValue(today.getHours(), false)
+  timeControls.minuteControl.setValue(today.getMinutes(), false)
+  timeControls.secondControl.setValue(today.getSeconds(), false)
 
   // // Handle "time warp" independently
   // if (guiControls.timeWarp) {

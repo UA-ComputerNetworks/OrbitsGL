@@ -247,27 +247,28 @@ function createControls() {
   // }
 
   function configureTime() {
-    if (!guiControls.enableClock && firstSatelliteEpoch) {
-      // Set dateDelta relative to first satellite epoch
-      const epochTime = new Date(firstSatelliteEpoch).getTime()
-      const currentSystemTime = new Date().getTime()
-      dateDelta = epochTime - currentSystemTime
-    } else if (!guiControls.enableClock) {
-      // Fallback to manual GUI time if no epoch is available
-      const manualTime = new Date(
-        guiControls.dateYear,
-        parseInt(guiControls.dateMonth) - 1,
-        guiControls.dateDay,
-        guiControls.timeHour,
-        guiControls.timeMinute,
-        guiControls.timeSecond
-      ).getTime()
-      const currentSystemTime = new Date().getTime()
-      dateDelta = manualTime - currentSystemTime
-    } else {
-      // Reset dateDelta when "enableClock" is ON
-      //dateDelta = 0
-    }
+    // if (guiControls.enableClock) {
+    //   // Reset dateDelta to 0 when using system time
+    //   //dateDelta = 0
+    //   console.log('triggered\n')
+    // } else if (satellites.length > 0 && firstSatelliteEpoch) {
+    //   // Set dateDelta based on satellite epoch time
+    //   const epochTime = new Date(firstSatelliteEpoch).getTime()
+    //   const systemTime = new Date().getTime()
+    //   dateDelta = epochTime - systemTime // Calculate offset
+    // } else {
+    //   // Set dateDelta based on manual GUI time
+    //   const manualTime = new Date(
+    //     guiControls.dateYear,
+    //     parseInt(guiControls.dateMonth) - 1,
+    //     guiControls.dateDay,
+    //     guiControls.timeHour,
+    //     guiControls.timeMinute,
+    //     guiControls.timeSecond
+    //   ).getTime()
+    //   const systemTime = new Date().getTime()
+    //   dateDelta = manualTime - systemTime // Calculate offset
+    // }
   }
 
   gui = new dat.GUI({ width: 300 }) // Adjust the width as needed
