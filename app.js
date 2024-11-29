@@ -99,42 +99,42 @@ function drawScene(time) {
   // Compute Julian time.
   let dateNow = new Date()
 
-  // if (guiControls.timeWarp) {
-  //   dateDelta += timeControls.warpSeconds.getValue() * 1000
-  //   //console.log(dateDelta);
-  // }
-
-  // If date and time updates are disabled, set date manually from the GUI controls:
-  // If "enableClock" (Start from Present Time) is checked, use the current system time.
-  // Otherwise, use the epoch time of the first satellite.
-  if (guiControls.enableClock) {
-    dateNow = new Date() // Use current time
-  } else if (satellites.length > 0) {
-    if (!firstSatelliteEpoch) {
-      console.warn('No epoch time available for the first satellite.')
-    }
-    dateNow = new Date(firstSatelliteEpoch) // Use epoch time of the first satellite
+  if (guiControls.timeWarp) {
+    // Always apply timeWarp (independent of enableClock)
+    dateDelta += timeControls.warpSeconds.getValue() * 1000
   }
 
-  // Apply manual GUI-based adjustments if "enableClock" is unchecked
-  if (!guiControls.enableClock) {
-    today = new Date(
-      dateNow.getTime() +
-        24 * 3600 * 1000 * guiControls.deltaDays +
-        3600 * 1000 * guiControls.deltaHours +
-        60 * 1000 * guiControls.deltaMins +
-        1000 * guiControls.deltaSecs
-    )
+  // Determine base "dateNow"
+  if (guiControls.enableClock) {
+    dateNow = new Date() // Use current system time
+  } else if (satellites.length > 0 && firstSatelliteEpoch) {
+    dateNow = new Date(firstSatelliteEpoch) // Use first satellite epoch time
   } else {
-    today = new Date(
-      dateNow.getTime() +
-        24 * 3600 * 1000 * guiControls.deltaDays +
-        3600 * 1000 * guiControls.deltaHours +
-        60 * 1000 * guiControls.deltaMins +
-        1000 * guiControls.deltaSecs +
-        dateDelta
+    console.warn(
+      'No firstSatelliteEpoch available. Falling back to manual GUI time.'
     )
+    dateNow = new Date(
+      guiControls.dateYear,
+      parseInt(guiControls.dateMonth) - 1,
+      guiControls.dateDay,
+      guiControls.timeHour,
+      guiControls.timeMinute,
+      guiControls.timeSecond
+    )
+  }
 
+  // Calculate "today" with timeWarp and GUI adjustments
+  today = new Date(
+    dateNow.getTime() +
+      24 * 3600 * 1000 * guiControls.deltaDays +
+      3600 * 1000 * guiControls.deltaHours +
+      60 * 1000 * guiControls.deltaMins +
+      1000 * guiControls.deltaSecs +
+      dateDelta // Add timeWarp adjustment
+  )
+
+  // Update GUI to reflect the current simulation time
+  if (guiControls.enableClock) {
     timeControls.yearControl.setValue(today.getFullYear())
     timeControls.monthControl.setValue(today.getMonth() + 1)
     timeControls.dayControl.setValue(today.getDate())
@@ -143,10 +143,10 @@ function drawScene(time) {
     timeControls.secondControl.setValue(today.getSeconds())
   }
 
-  // Handle "time warp" independently
-  if (guiControls.timeWarp) {
-    dateDelta += guiControls.warpSeconds * 1000
-  }
+  // // Handle "time warp" independently
+  // if (guiControls.timeWarp) {
+  //   dateDelta += guiControls.warpSeconds * 1000
+  // }
 
   // if (satellites.length > 0) {
   //   today = firstSatelliteEpoch

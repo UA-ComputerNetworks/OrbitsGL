@@ -230,9 +230,31 @@ function createControls() {
   /**
    * Configure time.
    */
+  // function configureTime() {
+  //   if (!guiControls.enableClock) {
+  //     const newDate = new Date(
+  //       guiControls.dateYear,
+  //       parseInt(guiControls.dateMonth) - 1,
+  //       guiControls.dateDay,
+  //       guiControls.timeHour,
+  //       guiControls.timeMinute,
+  //       guiControls.timeSecond
+  //     ).getTime()
+
+  //     const today = new Date().getTime()
+  //     dateDelta = newDate - today
+  //   }
+  // }
+
   function configureTime() {
-    if (!guiControls.enableClock) {
-      const newDate = new Date(
+    if (!guiControls.enableClock && firstSatelliteEpoch) {
+      // Set dateDelta relative to first satellite epoch
+      const epochTime = new Date(firstSatelliteEpoch).getTime()
+      const currentSystemTime = new Date().getTime()
+      dateDelta = epochTime - currentSystemTime
+    } else if (!guiControls.enableClock) {
+      // Fallback to manual GUI time if no epoch is available
+      const manualTime = new Date(
         guiControls.dateYear,
         parseInt(guiControls.dateMonth) - 1,
         guiControls.dateDay,
@@ -240,9 +262,11 @@ function createControls() {
         guiControls.timeMinute,
         guiControls.timeSecond
       ).getTime()
-
-      const today = new Date().getTime()
-      dateDelta = newDate - today
+      const currentSystemTime = new Date().getTime()
+      dateDelta = manualTime - currentSystemTime
+    } else {
+      // Reset dateDelta when "enableClock" is ON
+      //dateDelta = 0
     }
   }
 
