@@ -246,7 +246,7 @@ function createControls() {
     }
   }
 
-  gui = new dat.GUI()
+  gui = new dat.GUI({ width: 300 }) // Adjust the width as needed
 
   osvControls.targetName = gui
     .add(guiControls, 'targetName')
@@ -276,9 +276,11 @@ function createControls() {
   osvControls.source = gui
     .add(guiControls, 'source', ['Telemetry', 'OEM', 'TLE', 'OSV'])
     .name('Data Source')
+
+  // Enable clock.
   timeControls.enableClock = gui
     .add(guiControls, 'enableClock')
-    .name('Enable Clock')
+    .name('Start from Present time')
 
   const displayFolder = gui.addFolder('Display')
   displayControls.enableGrid = displayFolder

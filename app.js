@@ -77,6 +77,7 @@ var firstSatelliteEpoch = null // for the epoch time.
 requestAnimationFrame(drawScene)
 
 let today = null
+let isEpochSet = false // Initialize the flag
 
 // Draw the scene.
 function drawScene(time) {
