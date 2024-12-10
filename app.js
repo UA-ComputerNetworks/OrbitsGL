@@ -1069,7 +1069,7 @@ function drawOrbit(today, satellite, matrix, nutPar) {
   }
 
   console.log(`Orbit points for ${satellite.name}:`, p)
-  const color = [0, 255, 255] // Blue for ISL lines
+  const color = [255, 255, 255] // Blue for ISL lines
   lineShaders.setGeometry(p, color)
   lineShaders.draw(matrix)
 }
@@ -1086,7 +1086,7 @@ function drawSatellite(
   let satMatrix = m4.translate(matrix, x, y, z)
 
   // Apply custom scale if provided
-  const factor = (customScale || 0.01) * guiControls.satelliteScale
+  const factor = (customScale || 0.0075) * guiControls.satelliteScale
   satMatrix = m4.scale(satMatrix, factor, factor, factor)
 
   // Apply custom color if provided
