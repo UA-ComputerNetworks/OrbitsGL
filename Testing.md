@@ -4,7 +4,7 @@
 
 ### Steps:
 
-1. Navigate to the `SelectSatellite_Testing` folder.
+1. Navigate to the `Testing/SelectSatellite_Testing` folder.
 2. Upload the required TLE file:
    - **File:** `Starlink_20231116160005.txt`
    - Use the **Insert TLE List** option in the GUI to populate the satellites.
@@ -12,7 +12,7 @@
    - Select one of the provided files in the folder:
      - `SelectDialog_Testing1.txt`
      - `SelectDialog_Testing2.txt`
-   - Alternatively, directly select satellites populated in the dialog (from the uploaded TLE list).
+   - Alternatively, directly select satellites populated in the dialog (from the uploaded TLE list) but the satellites will be default colored.
 4. Verify satellite visualization:
    - Select satellites from the dialog. The selected satellites should appear in the visualization but without colors by default.
 5. **Toggle Satellite Orbit Lines:**
@@ -35,7 +35,9 @@
 2. Upload the required files:
    - **TLE File:** `Starlink_70_20231030160003.txt` via **Insert TLE List**.
    - **ISL File:** `ISL_Satellites.txt` via the **ISL Upload** option.
-3. Verify the visualization:
+3. We have ISL_Style.txt option but it is still not decided how to utilize it. So, we haven't implemented it yet. It does not work. Please do not use this.
+
+4. Verify the visualization:
    - Links between the satellites specified in `ISL_Satellites.txt` should appear.
 
 ### Expected Results:
@@ -48,19 +50,19 @@
 
 ### Steps:
 
-1. Test the **Enable Clock** toggle in the **Time** section of the GUI:
-   - **Enable Clock ON:**
+1. Test the **Start From Present** toggle in the **Time** section of the GUI:
+   - **Start From Present:**
      - The simulation starts from the current system time.
      - Time wrapping updates dynamically.
-   - **Enable Clock OFF:**
+   - **Start From Present OFF:**
      - The simulation starts from the epoch time of the first satellite in the uploaded TLE file (`Starlink_20231116160005.txt` or `Starlink_70_20231030160003.txt`).
 2. Use the **Insert TLE List** option to upload one of the TLE files.
 3. Observe how the simulation time changes based on the toggle.
 
 ### Expected Results:
 
-- When **Enable Clock ON**, the simulation uses the system clock for time progression.
-- When **Enable Clock OFF**, the simulation uses the epoch time from the uploaded TLE file.
+- When **Start From Present**, the simulation uses the system clock for time progression.
+- When **Start From Present**, the simulation uses the epoch time of the first satellite from the uploaded TLE file.
 
 ---
 
@@ -70,12 +72,12 @@
 
 1. Enable the **Time Warp** feature in the **Time** section of the GUI.
 2. Adjust the **warp size** (in seconds) to control how fast time progresses in the simulation.
-3. Test with both **Enable Clock ON** and **Enable Clock OFF** modes.
+3. Test with both **Start From Present ON** and **Start From Present OFF** modes.
 
 ### Expected Results:
 
 - Time wrapping accelerates or decelerates time progression based on the warp size value.
-- Time wrapping works independently of the "Enable Clock" toggle.
+- Time wrapping works independently of the "Start From Present" toggle.
 
 ---
 
