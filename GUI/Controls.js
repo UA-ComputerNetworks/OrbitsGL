@@ -663,6 +663,17 @@ function createControls() {
     .add(guiControls, 'keplerM', 0.0, 359.99, 0.001)
     .name('Mean Anomaly')
 
+  // Custom feature for satellite scale.
+
+  // guiControls.selectedSatelliteSize = 0.05 // Default size multiplier
+
+  // displayFolder
+  //   .add(guiControls, 'selectedSatelliteSize', 0.1, 5.0, 0.1)
+  //   .name('Selected Satellite Size')
+  //   .onChange(function () {
+  //     updateSelectedSatelliteSizes()
+  //   })
+
   gui.add(guiControls, 'GitHub')
 
   // Keeping the OSV features in the bottom.
