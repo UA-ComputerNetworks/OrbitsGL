@@ -1085,7 +1085,7 @@ function drawSatellite(
   const [x, y, z] = MathUtils.vecmul(osv_ECEF.r, 0.001)
   let satMatrix = m4.translate(matrix, x, y, z)
 
-  // Apply custom scale if provided
+  // Apply custom scale if provided so that users can modify. Users can modify through gui satellite scale.
   const factor = (customScale || 0.0075) * guiControls.satelliteScale
   satMatrix = m4.scale(satMatrix, factor, factor, factor)
 
