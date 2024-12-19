@@ -3,6 +3,9 @@ const ListCancel = document.getElementById('TLEListCancel')
 const TLEinput = document.getElementById('TLEListinput')
 const TLEFileInput = document.getElementById('TLEFileInput') // File input element
 
+// Create a global mapping for catalog numbers and satellite names
+const satelliteCatalogMap = {}
+
 // Debug to ensure elements are found
 console.log('TLE Enter button:', ListEnter)
 console.log('TLE Cancel button:', ListCancel)
@@ -30,6 +33,11 @@ TLEFileInput.onchange = function (event) {
 }
 
 ListEnter.onclick = function () {
+  // Clear the satelliteCatalogMap to refresh mapping
+  Object.keys(satelliteCatalogMap).forEach(
+    (key) => delete satelliteCatalogMap[key]
+  )
+
   console.log('Enter button clicked.')
 
   const TLEcontainer = document.getElementById('TLEListcontainer')
@@ -72,6 +80,11 @@ ListEnter.onclick = function () {
     const tleLine2 = lines[indElem * 3 + 2]
 
     console.log(`TLE Element ${indElem}:`, title, tleLine1, tleLine2)
+
+    const catalogNum = extractCatalogNumber(tleLine1) // Extract catalog number
+    satelliteCatalogMap[catalogNum] = title // Map catalog number to name
+
+    console.log(`Mapped catalog number ${catalogNum} to satellite ${title}`)
 
     // Parse the epoch time from the TLE (first satellite only)
     if (indElem === 0) {
@@ -139,6 +152,8 @@ ListEnter.onclick = function () {
   satelliteNames.sort()
   console.log('Satellite names after sorting:', satelliteNames)
 
+  console.log(satelliteCatalogMap)
+
   for (let indName = 0; indName < satelliteNames.length; indName++) {
     const satName = satelliteNames[indName]
     innerHTML += '<option value="' + satName + '">' + satName + '</option>'
@@ -160,4 +175,10 @@ ListCancel.onclick = function () {
   const TLEcontainer = document.getElementById('TLEListcontainer')
   TLEcontainer.style.visibility = 'hidden'
   console.log('TLE input cancelled.')
+}
+
+// Function to extract catalog number from TLE
+function extractCatalogNumber(tleLine1) {
+  // Extract catalog number from line 1 of TLE (columns 3-7)
+  return tleLine1.substring(2, 7).trim()
 }
