@@ -3,17 +3,61 @@ const SelectEnter = document.getElementById('TLESelectEnter')
 const SelectCancel = document.getElementById('TLESelectCancel')
 const SelectContainer = document.getElementById('TLESelectcontainer')
 const SelectList = document.getElementById('TLESelectlist')
-const FileInput = document.getElementById('SatelliteFileInput')
+const FileInputByName = document.getElementById('SatelliteFileInputByName')
+const FileInputByCatalog = document.getElementById(
+  'SatelliteFileInputByCatalog'
+)
 
 // Enable multi-selection on the list
 SelectList.multiple = true
-SelectList.size = 10 // Show 10 satellite names at once
+SelectList.size = 10 // Show 10 satellites at once
 
 let satelliteColorMap = {} // Store color for each satellite
 
-// Function to load the satellite catalog numbers and colors from the file
-FileInput.onchange = function (event) {
-  console.log(satelliteCatalogMap)
+// Function to load the satellite names and colors from a file
+FileInputByName.onchange = function (event) {
+  const file = event.target.files[0]
+  if (file) {
+    const reader = new FileReader()
+    reader.onload = function (e) {
+      const lines = e.target.result.split('\n')
+      SelectList.innerHTML = '' // Clear the list before loading new entries
+      satelliteColorMap = {} // Clear the satellite-color map
+
+      lines.forEach((line) => {
+        const parts = line.trim().split(',')
+        if (parts.length >= 4) {
+          const satName = parts[0].trim()
+          const color = [
+            parseInt(parts[1]),
+            parseInt(parts[2]),
+            parseInt(parts[3]),
+          ]
+
+          satelliteColorMap[satName] = color
+
+          const option = document.createElement('option')
+          option.value = satName
+          option.text = satName // Only the name for clarity
+          SelectList.appendChild(option)
+        } else {
+          console.warn(`Invalid line format: ${line}`)
+        }
+      })
+
+      console.log(
+        'Satellite list and colors loaded by name:',
+        satelliteColorMap
+      )
+    }
+    reader.readAsText(file)
+  } else {
+    console.error('No file selected.')
+  }
+}
+
+// Function to load the satellite catalog numbers and colors from a file
+FileInputByCatalog.onchange = function (event) {
   const file = event.target.files[0]
   if (file) {
     const reader = new FileReader()
@@ -40,7 +84,7 @@ FileInput.onchange = function (event) {
 
             const option = document.createElement('option')
             option.value = satName
-            option.text = `${satName} (Catalog: ${catalogNum})` // Display both name and catalog for clarity
+            option.text = `${satName} (Catalog: ${catalogNum})` // Name and catalog for clarity
             SelectList.appendChild(option)
           } else {
             console.warn(

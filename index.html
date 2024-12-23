@@ -33,25 +33,26 @@
         </div>
 
         <div id="TLESelectcontainer">
-            <!-- <label for="TLESelectinput">Select TLE from the list of satellites below:</label>
-            <br>
-            <select id="TLESelectlist" size="0">
-            </select>
-            <button id="TLESelectEnter">Select</button>
-            <button id="TLESelectCancel">Cancel</button> -->
+            <h3>Satellite Selection</h3>
+            <!-- File input for satellite names -->
+            <label for="SatelliteFileInputByName">Upload Satellite Data (Name):</label>
+            <input type="file" id="SatelliteFileInputByName" accept=".txt">
+            <br><br>
 
-            <!-- File input to upload satellite data (name and color) -->
-            <input type="file" id="SatelliteFileInput" accept=".txt">
-            <!-- Select list for satellite names with multi-selection enabled -->
+            <!-- File input for catalog numbers -->
+            <label for="SatelliteFileInputByCatalog">Upload Satellite Data (Catalog Number):</label>
+            <input type="file" id="SatelliteFileInputByCatalog" accept=".txt">
+            <br><br>
+
+            <!-- Select list for satellite names or catalog numbers -->
             <select id="TLESelectlist" multiple size="10"></select>
+            <br><br>
+
             <!-- Buttons for entering and canceling selection -->
             <button id="TLESelectEnter">Enter</button>
             <button id="TLESelectCancel">Cancel</button>
-
-            
-            
         </div>
-        
+                    
 
         <!-- Container for ISL Upload Section -->
     <div id="ISLUploadContainer">
