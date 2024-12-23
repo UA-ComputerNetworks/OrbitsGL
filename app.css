@@ -209,7 +209,7 @@ a:visited {
   z-index: 3;
 }
 
-#ISLUploadContainer {
+/* #ISLUploadContainer {
   z-index: 11;
   opacity: 0.8;
   padding-top: 10px;
@@ -221,4 +221,4 @@ a:visited {
   width: 500px;
   top: 40%;
   visibility: hidden;
-}
+} */

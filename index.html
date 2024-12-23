@@ -53,15 +53,22 @@
         </div>
         
 
-            <!-- Container for ISL Upload Section -->
-        <div id="ISLUploadContainer">
-            <h3>Inter-Satellite Link (ISL) Upload</h3>
-            <label for="ISLFileInput">Upload ISL File (Satellite Links):</label><br>
-            <input type="file" id="ISLFileInput" accept=".txt" onchange="handleISLFileUpload(event)"><br><br>
+        <!-- Container for ISL Upload Section -->
+    <div id="ISLUploadContainer">
+        <h3>Inter-Satellite Link (ISL) Upload</h3>
 
-            <label for="ISLStyleFileInput">Upload ISL Style File (Optional):</label><br>
-            <input type="file" id="ISLStyleFileInput" accept=".txt" onchange="handleISLStyleFileUpload(event)"><br><br>
-        </div>
+        <!-- Upload ISL File by Satellite Name -->
+        <label for="ISLFileInputByName">Upload ISL File by Satellite Name:</label><br>
+        <input type="file" id="ISLFileInputByName" accept=".txt"><br><br>
+
+        <!-- Upload ISL File by Catalog Number -->
+        <label for="ISLFileInputByCatalog">Upload ISL File by Catalog Number:</label><br>
+        <input type="file" id="ISLFileInputByCatalog" accept=".txt"><br><br>
+
+        <!-- Upload ISL Style File -->
+        <label for="ISLStyleFileInputByName">Upload ISL Style File (Optional):</label><br>
+        <input type="file" id="ISLStyleFileInputByName" accept=".txt"><br><br>
+    </div>
 
                 <!-- Container for TLE Upload Section -->
         <!-- Container for TLE Upload Section -->
@@ -110,7 +117,9 @@
     <script src="shaders/PlanetShaders.js"></script>
     <script src="app.js"></script>
         <!-- Link to ISL Upload JavaScript -->
-    <script src="GUI/islUpload.js"></script>
+   
+    <script src="GUI/islUpload.js"></script> -->
+
     <script src="GUI/tleUpload.js"></script>
     </body>
 </html>

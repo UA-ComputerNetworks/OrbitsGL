@@ -285,17 +285,28 @@ function createControls() {
   // Moving ISL features to the top.
 
   // Define upload functions in guiControls
-  guiControls.uploadISLFile = function () {
-    document.getElementById('ISLFileInput').click() // Trigger hidden ISL file input
+
+  guiControls.uploadISLFileByName = function () {
+    document.getElementById('ISLFileInputByName').click() // Trigger ISL upload by name
+  }
+
+  guiControls.uploadISLFileByCatalog = function () {
+    document.getElementById('ISLFileInputByCatalog').click() // Trigger ISL upload by catalog number
   }
 
   guiControls.uploadISLStyleFile = function () {
-    document.getElementById('ISLStyleFileInput').click() // Trigger hidden style file input
+    document.getElementById('ISLStyleFileInputByName').click() // Trigger hidden style file input
   }
 
   // Add an "Inter-Satellite Links" folder to GUI
+  // Add ISL upload options
   const islFolder = gui.addFolder('Inter-Satellite Links')
-  islFolder.add(guiControls, 'uploadISLFile').name('Upload ISL File')
+  islFolder
+    .add(guiControls, 'uploadISLFileByName')
+    .name('Upload ISL by SatName')
+  islFolder
+    .add(guiControls, 'uploadISLFileByCatalog')
+    .name('Upload ISL by Catalog Number')
   islFolder.add(guiControls, 'uploadISLStyleFile').name('Upload ISL Style File')
 
   osvControls.source = gui
