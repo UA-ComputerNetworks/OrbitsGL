@@ -11,8 +11,9 @@ SelectList.size = 10 // Show 10 satellite names at once
 
 let satelliteColorMap = {} // Store color for each satellite
 
-// Function to load the satellite names and colors from the file
+// Function to load the satellite catalog numbers and colors from the file
 FileInput.onchange = function (event) {
+  console.log(satelliteCatalogMap)
   const file = event.target.files[0]
   if (file) {
     const reader = new FileReader()
@@ -24,24 +25,41 @@ FileInput.onchange = function (event) {
       lines.forEach((line) => {
         const parts = line.trim().split(',')
         if (parts.length >= 4) {
-          const satName = parts[0].trim()
+          const catalogNum = parts[0].trim()
           const color = [
             parseInt(parts[1]),
             parseInt(parts[2]),
             parseInt(parts[3]),
           ]
 
-          satelliteColorMap[satName] = color
+          // Map catalog number to satellite name using satelliteCatalogMap
+          const satName = satelliteCatalogMap[catalogNum]
 
-          const option = document.createElement('option')
-          option.value = satName
-          option.text = satName
-          SelectList.appendChild(option)
+          if (satName) {
+            satelliteColorMap[satName] = color
+
+            const option = document.createElement('option')
+            option.value = satName
+            option.text = `${satName} (Catalog: ${catalogNum})` // Display both name and catalog for clarity
+            SelectList.appendChild(option)
+          } else {
+            console.warn(
+              `Catalog number ${catalogNum} not found in satelliteCatalogMap`
+            )
+          }
+        } else {
+          console.warn(`Invalid line format: ${line}`)
         }
       })
-      console.log('Satellite list and colors loaded:', satelliteColorMap)
+
+      console.log(
+        'Satellite list and colors loaded by catalog:',
+        satelliteColorMap
+      )
     }
     reader.readAsText(file)
+  } else {
+    console.error('No file selected.')
   }
 }
 
