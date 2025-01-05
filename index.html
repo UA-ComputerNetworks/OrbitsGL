@@ -12,25 +12,16 @@
         <canvas id="canvas"></canvas>
         <canvas id="canvasJs"></canvas>
 
-        <div id="TLEcontainer">
-            <label for="TLEinput">Paste 3-line TLE below:</label><br>
-            <a href="https://celestrak.com/NORAD/elements/" target="_blank"> See CelesTrak for available TLEs.</a>
-            <textarea id="TLEinput" rows="3" cols="69"></textarea>
-            <button id="TLEEnter">Enter</button>
-            <button id="TLECancel">Cancel</button>
-        </div>
-        <div id="TLEListcontainer">
+        <div id="TLEListcontainer" style="visibility: hidden;">
             <label for="TLEListinput">Paste a list of 3-line TLEs below:</label><br>
-            <a href="https://celestrak.com/NORAD/elements/" target="_blank"> See CelesTrak for available TLEs.</a>
             <textarea id="TLEListinput" rows="10" cols="69"></textarea>
-
-            <!-- Adding file input -->
-            <label for="TLEFileInput">Or select a file with TLE data:</label><br>
-            <input type="file" id="TLEFileInput" accept=".txt" multiple><br>
-
+            <label for="TLEFileInput">Or select TLE files:</label><br>
+            <input type="file" id="TLEFileInput" multiple accept=".txt">
             <button id="TLEListEnter">Enter</button>
             <button id="TLEListCancel">Cancel</button>
-        </div>
+         </div>
+
+        
 
         <div id="TLESelectcontainer">
             <h3>Satellite Selection</h3>
