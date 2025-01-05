@@ -95,7 +95,7 @@ function createControls() {
     this.frame = 'ECEF'
 
     this.source = 'Telemetry'
-    this.enableClock = true
+    this.enableClock = false
     this.targetName = 'ISS (ZARYA)'
     this.osvYear = 2021
     this.osvMonth = 11
