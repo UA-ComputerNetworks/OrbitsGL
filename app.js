@@ -158,6 +158,7 @@ function drawScene(time) {
   let osvSatListTeme = []
   if (enableList) {
     for (let indSat = 0; indSat < satellites.length; indSat++) {
+      //console.log(indSat)
       const sat = satellites[indSat]
       //const positionAndVelocity = satellite.propagate(sat, today);
 

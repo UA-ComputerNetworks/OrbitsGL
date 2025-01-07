@@ -85,7 +85,7 @@ function processTLEFile(content, filename) {
   satelliteNames = []
   satNameToIndex = []
   satIndexToName = []
-  autoCompleteTargetList = []
+  //autoCompleteTargetList = []
   satelliteObjects = {}
 
   for (let indElem = 0; indElem < Math.floor(numElem); indElem++) {
@@ -149,6 +149,9 @@ function processTLEFile(content, filename) {
   }
 
   console.log('Satellites processed:', satelliteObjects)
+  console.log(satellites)
+  console.log(satelliteNames)
+  displayControls.enableList.setValue(true)
 }
 
 // Enter button handling
