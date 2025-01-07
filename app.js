@@ -73,6 +73,7 @@ var selectedSatellites = [] // Assuming this is populated from SelectDialog.
 let satelliteObjects = []
 
 var firstSatelliteEpoch = null // for the epoch time.
+let currentFileIndex = 0
 
 requestAnimationFrame(drawScene)
 
@@ -141,6 +142,8 @@ function drawScene(time) {
   timeControls.hourControl.setValue(today.getHours(), false)
   timeControls.minuteControl.setValue(today.getMinutes(), false)
   timeControls.secondControl.setValue(today.getSeconds(), false)
+
+  checkAndSwitchFiles()
 
   // // Handle "time warp" independently
   // if (guiControls.timeWarp) {

@@ -34,7 +34,6 @@ function extractTimestamp(filename) {
     : null
 }
 
-// Function to handle multiple file reading
 TLEFileInput.onchange = function (event) {
   const files = Array.from(event.target.files) // Get all selected files
   if (!files || files.length === 0) {
@@ -44,6 +43,9 @@ TLEFileInput.onchange = function (event) {
 
   console.log(`Processing ${files.length} file(s)...`)
   tleFiles = [] // Clear previous file data
+
+  // Clear textarea and list it
+  TLEinput.value = '' // Clear previous content
 
   files.forEach((file) => {
     const reader = new FileReader()
@@ -60,11 +62,8 @@ TLEFileInput.onchange = function (event) {
       tleFiles.push({ name: file.name, content, timestamp })
       console.log(`Loaded file: ${file.name}, Timestamp: ${timestamp}`)
 
-      // Sort files after all are loaded
-      if (tleFiles.length === files.length) {
-        tleFiles.sort((a, b) => a.timestamp - b.timestamp)
-        console.log('Sorted TLE files:', tleFiles)
-      }
+      // Append to textarea for display
+      TLEinput.value += `${file.name}\n`
     }
 
     reader.onerror = function (e) {
@@ -73,6 +72,12 @@ TLEFileInput.onchange = function (event) {
 
     reader.readAsText(file)
   })
+
+  // Sort files after all are loaded
+  setTimeout(() => {
+    tleFiles.sort((a, b) => a.timestamp - b.timestamp)
+    console.log('Sorted TLE files:', tleFiles)
+  }, 100) // Ensure all file reads complete before sorting
 }
 
 // Function to process a single TLE file
@@ -101,7 +106,7 @@ function processTLEFile(content, filename) {
     const catalogNum = extractCatalogNumber(tleLine1)
     satelliteCatalogMap[catalogNum] = title
 
-    console.log(`Mapped catalog number ${catalogNum} to satellite ${title}`)
+    //console.log(`Mapped catalog number ${catalogNum} to satellite ${title}`)
 
     if (indElem === 0) {
       const epochString = tleLine1.substring(18, 32).trim()
@@ -174,4 +179,51 @@ ListCancel.onclick = function () {
   const TLEcontainer = document.getElementById('TLEListcontainer')
   TLEcontainer.style.visibility = 'hidden'
   console.log('TLE input cancelled.')
+}
+
+function checkAndSwitchFiles() {
+  if (!tleFiles || tleFiles.length === 0) {
+    console.warn('No TLE files available for switching.')
+    return
+  }
+
+  const currentTime = today.getTime()
+
+  console.log(`Current Time: ${currentTime}`)
+  console.log(`Current File Index: ${currentFileIndex}`)
+  console.log(
+    `Current File Timestamp: ${
+      tleFiles[currentFileIndex] ? tleFiles[currentFileIndex].timestamp : 'N/A'
+    }`
+  )
+
+  // Check forward switching
+  if (
+    currentFileIndex < tleFiles.length - 1 &&
+    currentTime >= tleFiles[currentFileIndex + 1].timestamp
+  ) {
+    currentFileIndex++
+    const nextFile = tleFiles[currentFileIndex]
+    console.log(
+      `Switching to next file: ${nextFile.name} at ${new Date(
+        nextFile.timestamp
+      )}`
+    )
+    processTLEFile(nextFile.content, nextFile.name)
+  }
+
+  // Check backward switching
+  if (
+    currentFileIndex > 0 &&
+    currentTime < tleFiles[currentFileIndex].timestamp
+  ) {
+    currentFileIndex--
+    const prevFile = tleFiles[currentFileIndex]
+    console.log(
+      `Switching to previous file: ${prevFile.name} at ${new Date(
+        prevFile.timestamp
+      )}`
+    )
+    processTLEFile(prevFile.content, prevFile.name)
+  }
 }

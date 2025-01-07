@@ -104,7 +104,7 @@ class PointShaders {
 
     // Get the location of point size in the shader
     const pointSizeLocation = gl.getUniformLocation(this.program, 'pointSize')
-    console.log('Point size: ', this.pointSize)
+    //console.log('Point size: ', this.pointSize)
     // Set the point size in the shader
     gl.uniform1f(pointSizeLocation, this.pointSize)
 
