@@ -6,13 +6,6 @@ const TLEFileInput = document.getElementById('TLEFileInput') // File input eleme
 // Create a global mapping for catalog numbers and satellite names
 const satelliteCatalogMap = {}
 let tleFiles = [] // Array to store uploaded TLE files and their data
-//let satellites = []
-//let satelliteNames = []
-//let autoCompleteTargetList = []
-//let satNameToIndex = []
-//let satIndexToName = []
-//let satelliteObjects = {}
-//let firstSatelliteEpoch
 
 // Function to extract catalog number from TLE
 function extractCatalogNumber(tleLine1) {
@@ -90,7 +83,6 @@ function processTLEFile(content, filename) {
   satelliteNames = []
   satNameToIndex = []
   satIndexToName = []
-  //autoCompleteTargetList = []
   satelliteObjects = {}
 
   for (let indElem = 0; indElem < Math.floor(numElem); indElem++) {
