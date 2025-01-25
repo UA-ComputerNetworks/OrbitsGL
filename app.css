@@ -224,8 +224,15 @@ a:visited {
   visibility: hidden; /* Ensure containers are hidden by default */
 }
 
-#TLESelectcontainer {
+#SelectTLEUploadContainer {
   z-index: 11;
   opacity: 0.8;
-  visibility: hidden; /* Hide until user triggers selection */
+  position: absolute;
+  left: 0;
+  right: 0;
+  margin-left: auto;
+  margin-right: auto;
+  width: 500px;
+  top: 40%;
+  visibility: hidden; /* Ensure containers are hidden by default */
 }

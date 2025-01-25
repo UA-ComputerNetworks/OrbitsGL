@@ -1,28 +1,20 @@
-// Handling of satellite selection dialog
-const SelectEnter = document.getElementById('TLESelectEnter')
-const SelectCancel = document.getElementById('TLESelectCancel')
-const SelectContainer = document.getElementById('TLESelectcontainer')
-const SelectList = document.getElementById('TLESelectlist')
-const FileInputByName = document.getElementById('SatelliteFileInputByName')
+// File input elements for Name and Catalog
+const FileInputByName = document.getElementById('SelectTLEFileInputByName')
 const FileInputByCatalog = document.getElementById(
-  'SatelliteFileInputByCatalog'
+  'SelectTLEFileInputByCatalog'
 )
 
-// Enable multi-selection on the list
-SelectList.multiple = true
-SelectList.size = 10 // Show 10 satellites at once
+// Map to store satellite colors
+let satelliteColorMap = {}
 
-let satelliteColorMap = {} // Store color for each satellite
-
-// Function to load the satellite names and colors from a file
+// Function to load satellite data by Name
 FileInputByName.onchange = function (event) {
   const file = event.target.files[0]
   if (file) {
     const reader = new FileReader()
     reader.onload = function (e) {
       const lines = e.target.result.split('\n')
-      SelectList.innerHTML = '' // Clear the list before loading new entries
-      satelliteColorMap = {} // Clear the satellite-color map
+      satelliteColorMap = {} // Clear the color map
 
       lines.forEach((line) => {
         const parts = line.trim().split(',')
@@ -36,35 +28,34 @@ FileInputByName.onchange = function (event) {
 
           satelliteColorMap[satName] = color
 
-          const option = document.createElement('option')
-          option.value = satName
-          option.text = satName // Only the name for clarity
-          SelectList.appendChild(option)
-        } else {
+          console.log(`Loaded Satellite Name: ${satName}, Color: ${color}`)
+        } else if (line.trim() !== '') {
           console.warn(`Invalid line format: ${line}`)
         }
       })
 
       console.log(
-        'Satellite list and colors loaded by name:',
+        'Satellite list and colors loaded by Name:',
         satelliteColorMap
       )
+
+      // Trigger satellite processing
+      processSatelliteSelection()
     }
     reader.readAsText(file)
   } else {
-    console.error('No file selected.')
+    console.error('No file selected for Satellite Names.')
   }
 }
 
-// Function to load the satellite catalog numbers and colors from a file
+// Function to load satellite data by Catalog
 FileInputByCatalog.onchange = function (event) {
   const file = event.target.files[0]
   if (file) {
     const reader = new FileReader()
     reader.onload = function (e) {
       const lines = e.target.result.split('\n')
-      SelectList.innerHTML = '' // Clear the list before loading new entries
-      satelliteColorMap = {} // Clear the satellite-color map
+      satelliteColorMap = {} // Clear the color map
 
       lines.forEach((line) => {
         const parts = line.trim().split(',')
@@ -82,53 +73,49 @@ FileInputByCatalog.onchange = function (event) {
           if (satName) {
             satelliteColorMap[satName] = color
 
-            const option = document.createElement('option')
-            option.value = satName
-            option.text = `${satName} (Catalog: ${catalogNum})` // Name and catalog for clarity
-            SelectList.appendChild(option)
+            console.log(
+              `Loaded Satellite from Catalog: ${satName} (Catalog: ${catalogNum}), Color: ${color}`
+            )
           } else {
             console.warn(
               `Catalog number ${catalogNum} not found in satelliteCatalogMap`
             )
           }
-        } else {
+        } else if (line.trim() !== '') {
           console.warn(`Invalid line format: ${line}`)
         }
       })
 
       console.log(
-        'Satellite list and colors loaded by catalog:',
+        'Satellite list and colors loaded by Catalog:',
         satelliteColorMap
       )
+
+      // Trigger satellite processing
+      processSatelliteSelection()
     }
     reader.readAsText(file)
   } else {
-    console.error('No file selected.')
+    console.error('No file selected for Satellite Catalog.')
   }
 }
 
-// Function to handle satellite selection on Enter button click
-SelectEnter.onclick = function () {
+// Function to process the selected satellites
+function processSatelliteSelection() {
   selectedSatellites = [] // Clear previous selection
 
-  Array.from(SelectList.selectedOptions).forEach((option) => {
-    const satName = option.value
+  Object.keys(satelliteColorMap).forEach((satName) => {
     const satellite = satelliteObjects[satName]
 
     if (satellite) {
-      satellite.color = satelliteColorMap[satName] || [200, 200, 200]
-      selectedSatellites.push(satellite)
-      console.log(`Selected Satellite: ${satName}, Color: [${satellite.color}]`)
+      satellite.color = satelliteColorMap[satName] || [200, 200, 200] // Apply color
+      selectedSatellites.push(satellite) // Add to selected satellites
+
+      console.log(`Selected Satellite: ${satName}, Color: ${satellite.color}`)
     } else {
       console.warn(`Satellite ${satName} not found in satelliteObjects`)
     }
   })
 
-  SelectContainer.style.visibility = 'hidden'
   console.log('Final selected satellites list:', selectedSatellites)
-}
-
-// Cancel button to hide the selection dialog
-SelectCancel.onclick = function () {
-  SelectContainer.style.visibility = 'hidden'
 }

@@ -187,11 +187,11 @@ function createControls() {
       TLEinput.focus()
     }
 
-    // Select TLE from a list.
-    this.selectTLE = function () {
-      const SelectContainer = document.getElementById('TLESelectcontainer')
-      SelectContainer.style.visibility = 'visible'
-    }
+    // // Select TLE from a list.
+    // this.selectTLE = function () {
+    //   const SelectContainer = document.getElementById('TLESelectcontainer')
+    //   SelectContainer.style.visibility = 'visible'
+    // }
 
     // Initialize TLE from a string.
     this.insertList = function () {
@@ -282,24 +282,33 @@ function createControls() {
     .name('Insert TLE List')
   //osvControls.selectTLE = gui.add(guiControls, 'selectTLE').name('Select TLE')
 
+  // Select TLE controls.
+
+  // Adding "Select TLE" options to GUI
   guiControls.selectTLEByName = function () {
-    const SelectContainer = document.getElementById('TLESelectcontainerByName')
-    SelectContainer.style.visibility = 'visible'
+    console.log('Select TLE by Name triggered')
+    document.getElementById('SelectTLEFileInputByName').click()
   }
 
   guiControls.selectTLEByCatalog = function () {
-    const SelectContainer = document.getElementById(
-      'TLESelectcontainerByCatalog'
-    )
-    SelectContainer.style.visibility = 'visible'
+    console.log('Select TLE by Catalog triggered')
+    document.getElementById('SelectTLEFileInputByCatalog').click()
   }
 
-  // Add "Select TLE" options to the GUI
+  // Add Select TLE Folder to GUI
   const tleFolder2 = gui.addFolder('Select TLE')
   tleFolder2.add(guiControls, 'selectTLEByName').name('Select TLE by Name')
   tleFolder2
     .add(guiControls, 'selectTLEByCatalog')
     .name('Select TLE by Catalog Number')
+
+  // guiControls.uploadTLEFileByName = function () {
+  //   document.getElementById('TLEFileInputByName').click()
+  // }
+
+  // guiControls.uploadTLEFileByCatalog = function () {
+  //   document.getElementById('TLEFileInputByCatalog').click()
+  // }
 
   // Moving ISL features to the top.
 
