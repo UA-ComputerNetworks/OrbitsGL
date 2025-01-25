@@ -280,7 +280,26 @@ function createControls() {
   osvControls.insertList = gui
     .add(guiControls, 'insertList')
     .name('Insert TLE List')
-  osvControls.selectTLE = gui.add(guiControls, 'selectTLE').name('Select TLE')
+  //osvControls.selectTLE = gui.add(guiControls, 'selectTLE').name('Select TLE')
+
+  guiControls.selectTLEByName = function () {
+    const SelectContainer = document.getElementById('TLESelectcontainerByName')
+    SelectContainer.style.visibility = 'visible'
+  }
+
+  guiControls.selectTLEByCatalog = function () {
+    const SelectContainer = document.getElementById(
+      'TLESelectcontainerByCatalog'
+    )
+    SelectContainer.style.visibility = 'visible'
+  }
+
+  // Add "Select TLE" options to the GUI
+  const tleFolder2 = gui.addFolder('Select TLE')
+  tleFolder2.add(guiControls, 'selectTLEByName').name('Select TLE by Name')
+  tleFolder2
+    .add(guiControls, 'selectTLEByCatalog')
+    .name('Select TLE by Catalog Number')
 
   // Moving ISL features to the top.
 
