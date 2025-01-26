@@ -1,13 +1,74 @@
-// DatGUI controls.
+// ================================
+// Global Variables for GUI Controls
+// ================================
+
+/**
+ * Central object to manage all GUI functionalities.
+ * Serves as the parent control for all GUI-related subgroups.
+ */
 var guiControls = null
 
-// Hold OSV controls.
+/**
+ * OSV Controls:
+ * - Manages Orbit State Vector (OSV) visualization and real-time data.
+ * - Examples:
+ *    - Visualizing satellite positions and vectors.
+ *    - Displaying orbit paths.
+ */
 var osvControls = {}
+
+/**
+ * Display Controls:
+ * - Handles visual components and toggles for GUI elements.
+ * - Examples:
+ *    - Enabling/disabling grid lines.
+ *    - Toggling visibility of satellite paths.
+ */
 var displayControls = {}
+
+/**
+ * TLE Controls:
+ * - Provides functionalities to upload, manage, and visualize TLE files.
+ * - Examples:
+ *    - Uploading TLE files by satellite name or catalog number.
+ *    - Selecting satellites dynamically for operations.
+ */
 var tleControls = {}
+
+/**
+ * Time Controls:
+ * - Controls the simulation time and timewarp functionality.
+ * - Examples:
+ *    - Pausing or resuming the simulation.
+ *    - Adjusting timewarp for faster or slower progression.
+ */
 var timeControls = {}
+
+/**
+ * Camera Controls:
+ * - Manages the camera’s behavior, including movement and focus.
+ * - Examples:
+ *    - Centering on a specific satellite.
+ *    - Rotating the view dynamically.
+ */
 var cameraControls = {}
+
+/**
+ * Frame Controls:
+ * - Handles the reference frame for the visualization.
+ * - Examples:
+ *    - Switching between Earth-centered (ECEF) and inertial frames.
+ *    - Changing coordinate systems.
+ */
 var frameControls = {}
+
+/**
+ * Kepler Controls:
+ * - Displays Keplerian orbital parameters for selected satellites.
+ * - Examples:
+ *    - Showing semi-major axis, inclination, and eccentricity.
+ *    - Visualizing real-time changes in orbital elements.
+ */
 var keplerControls = {}
 
 /**

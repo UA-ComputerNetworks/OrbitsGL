@@ -98,8 +98,6 @@ function processTLEFile(content, filename) {
     const catalogNum = extractCatalogNumber(tleLine1)
     satelliteCatalogMap[catalogNum] = title
 
-    //console.log(`Mapped catalog number ${catalogNum} to satellite ${title}`)
-
     if (indElem === 0) {
       const epochString = tleLine1.substring(18, 32).trim()
       const year = parseInt(epochString.substring(0, 2), 10)
