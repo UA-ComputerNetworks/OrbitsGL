@@ -1,38 +1,69 @@
-// Object to store ISL data and styles with default settings
+/**
+ * Inter-Satellite Link (ISL) File Management and Styling
+ *
+ * This script handles the management of ISL data, including uploading files
+ * for satellite links and their styles. Users can upload ISL files by
+ * satellite name or catalog number and optionally define styles for ISL links.
+ */
+
+/**
+ * Global ISL Data Object
+ *
+ * Stores ISL links and styles with default settings.
+ */
 const islData = {
-  links: [], // Store links in a unified format
-  style: { color: [255, 255, 255], style: 'solid', width: 10 }, // Default style as an RGB array
+  links: [], // Store links in a unified format as objects { satellite1, satellite2 }
+  style: { color: [255, 255, 255], style: 'solid', width: 10 }, // Default link style
 }
 
-// Function to handle ISL file upload by satellite name
+/**
+ * Function to handle ISL file upload by Satellite Name.
+ *
+ * Reads and processes an ISL file that specifies links by satellite names.
+ *
+ * @param {Event} event - The file input change event.
+ */
 function handleISLFileUploadByName(event) {
   const file = event.target.files[0]
   if (file) {
     const reader = new FileReader()
     reader.onload = (e) => {
       const content = e.target.result
-      parseISLFile(content, 'name') // Indicate it's by satellite name
+      parseISLFile(content, 'name') // Indicate the parsing type (by name)
       console.log('Parsed ISL Links by Name:', islData.links)
     }
     reader.readAsText(file)
   }
 }
 
-// Function to handle ISL file upload by catalog number
+/**
+ * Function to handle ISL file upload by Catalog Number.
+ *
+ * Reads and processes an ISL file that specifies links by satellite catalog numbers.
+ *
+ * @param {Event} event - The file input change event.
+ */
 function handleISLFileUploadByCatalog(event) {
   const file = event.target.files[0]
   if (file) {
     const reader = new FileReader()
     reader.onload = (e) => {
       const content = e.target.result
-      parseISLFile(content, 'catalog') // Indicate it's by catalog number
+      parseISLFile(content, 'catalog') // Indicate the parsing type (by catalog)
       console.log('Parsed ISL Links by Catalog Number:', islData.links)
     }
     reader.readAsText(file)
   }
 }
 
-// Function to parse ISL file and resolve links by name or catalog number
+/**
+ * Function to parse ISL files.
+ *
+ * Processes ISL files and resolves links using either satellite names or catalog numbers.
+ *
+ * @param {string} content - File content as a string.
+ * @param {string} type - The parsing type ('name' or 'catalog').
+ */
 function parseISLFile(content, type) {
   const lines = content.split('\n')
   islData.links = lines
@@ -58,7 +89,13 @@ function parseISLFile(content, type) {
     .filter((link) => link !== null) // Remove invalid links
 }
 
-// Function to handle ISL style file upload
+/**
+ * Function to handle ISL style file upload.
+ *
+ * Reads and processes a style file to define ISL link styles.
+ *
+ * @param {Event} event - The file input change event.
+ */
 function handleISLStyleFileUpload(event) {
   const file = event.target.files[0]
   if (file) {
@@ -77,7 +114,13 @@ function handleISLStyleFileUpload(event) {
   }
 }
 
-// Parse ISL style file containing default style information
+/**
+ * Function to parse ISL style files.
+ *
+ * Extracts style data (color, line style, width) from a given style file.
+ *
+ * @param {string} content - File content as a string.
+ */
 function parseISLStyleFile(content) {
   const lines = content.split('\n').filter((line) => line.trim() !== '') // Ignore empty lines
   if (lines.length > 0) {
@@ -100,26 +143,30 @@ function parseISLStyleFile(content) {
   }
 }
 
-// Event listeners for file input elements
-const ISLFileInputByName = document.getElementById('ISLFileInputByName')
-const ISLFileInputByCatalog = document.getElementById('ISLFileInputByCatalog')
-const ISLStyleFileInputByName = document.getElementById(
-  'ISLStyleFileInputByName'
-)
+/**
+ * Event Listeners for File Input Elements
+ *
+ * Resets input values on click and triggers appropriate upload handlers on change.
+ */
 
 // Event listeners for Satellite Name input
+const ISLFileInputByName = document.getElementById('ISLFileInputByName')
 ISLFileInputByName.addEventListener('click', (event) => {
   event.target.value = '' // Reset the input value
 })
 ISLFileInputByName.addEventListener('change', handleISLFileUploadByName)
 
 // Event listeners for Catalog Number input
+const ISLFileInputByCatalog = document.getElementById('ISLFileInputByCatalog')
 ISLFileInputByCatalog.addEventListener('click', (event) => {
   event.target.value = '' // Reset the input value
 })
 ISLFileInputByCatalog.addEventListener('change', handleISLFileUploadByCatalog)
 
 // Event listener for ISL Style input
+const ISLStyleFileInputByName = document.getElementById(
+  'ISLStyleFileInputByName'
+)
 ISLStyleFileInputByName.addEventListener('click', (event) => {
   event.target.value = '' // Reset the input value
 })
