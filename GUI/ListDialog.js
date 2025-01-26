@@ -1,18 +1,44 @@
+// ===================================
+// Global Elements for TLE Operations
+// ===================================
+
+/**
+ * `ListEnter` - Button for confirming TLE data entry.
+ * `ListCancel` - Button for cancelling TLE data input.
+ * `TLEinput` - Textarea for displaying selected TLE files.
+ * `TLEFileInput` - File input for uploading multiple TLE files.
+ */
 const ListEnter = document.getElementById('TLEListEnter')
 const ListCancel = document.getElementById('TLEListCancel')
 const TLEinput = document.getElementById('TLEListinput')
-const TLEFileInput = document.getElementById('TLEFileInput') // File input element
+const TLEFileInput = document.getElementById('TLEFileInput')
 
-// Create a global mapping for catalog numbers and satellite names
+// ================================
+// Global Data Storage and Utilities
+// ================================
+
+/**
+ * `satelliteCatalogMap` - Maps catalog numbers to satellite names.
+ * `tleFiles` - Stores uploaded TLE files along with their content and timestamps.
+ */
 const satelliteCatalogMap = {}
 let tleFiles = [] // Array to store uploaded TLE files and their data
 
-// Function to extract catalog number from TLE
+/**
+ * Extracts the catalog number from the first line of a TLE.
+ * @param {string} tleLine1 - The first line of a TLE.
+ * @returns {string} Catalog number extracted from the TLE.
+ */
 function extractCatalogNumber(tleLine1) {
   return tleLine1.substring(2, 7).trim()
 }
 
-// Function to extract timestamp from filename
+/**
+ * Extracts the timestamp from a TLE filename.
+ * Assumes filenames follow the pattern `*_YYYYMMDDHHMMSS.txt`.
+ * @param {string} filename - TLE filename.
+ * @returns {number|null} Timestamp in milliseconds, or null if invalid format.
+ */
 function extractTimestamp(filename) {
   const match = filename.match(/_(\d{14})\.txt$/)
   return match
@@ -27,6 +53,14 @@ function extractTimestamp(filename) {
     : null
 }
 
+// ===================================
+// Handling File Upload for TLE Files
+// ===================================
+
+/**
+ * Handles multiple file uploads and parses their content.
+ * Populates the `tleFiles` array and updates the textarea for display.
+ */
 TLEFileInput.onchange = function (event) {
   const files = Array.from(event.target.files) // Get all selected files
   if (!files || files.length === 0) {
@@ -37,7 +71,7 @@ TLEFileInput.onchange = function (event) {
   console.log(`Processing ${files.length} file(s)...`)
   tleFiles = [] // Clear previous file data
 
-  // Clear textarea and list it
+  // Clear textarea and list uploaded filenames
   TLEinput.value = '' // Clear previous content
 
   files.forEach((file) => {
@@ -73,7 +107,16 @@ TLEFileInput.onchange = function (event) {
   }, 100) // Ensure all file reads complete before sorting
 }
 
-// Function to process a single TLE file
+// ============================
+// Processing a Single TLE File
+// ============================
+
+/**
+ * Processes the content of a single TLE file.
+ * Parses the TLE lines and updates satellite-related data.
+ * @param {string} content - TLE file content.
+ * @param {string} filename - TLE filename.
+ */
 function processTLEFile(content, filename) {
   const lines = content.split('\n')
   const numElem = (lines.length + 1) / 3
@@ -149,7 +192,13 @@ function processTLEFile(content, filename) {
   displayControls.enableList.setValue(true)
 }
 
-// Enter button handling
+// ===========================
+// Event Handlers for Buttons
+// ===========================
+
+/**
+ * Handles the "Enter" button click for processing TLE files.
+ */
 ListEnter.onclick = function () {
   console.log('Enter button clicked.')
   const TLEcontainer = document.getElementById('TLEListcontainer')
@@ -164,13 +213,22 @@ ListEnter.onclick = function () {
   processTLEFile(firstFile.content, firstFile.name)
 }
 
-// Cancel button handling
+/**
+ * Handles the "Cancel" button click for hiding the TLE input container.
+ */
 ListCancel.onclick = function () {
   const TLEcontainer = document.getElementById('TLEListcontainer')
   TLEcontainer.style.visibility = 'hidden'
   console.log('TLE input cancelled.')
 }
 
+// ==========================
+// File Switching Logic
+// ==========================
+
+/**
+ * Checks and switches TLE files based on the current simulation time.
+ */
 function checkAndSwitchFiles() {
   if (!tleFiles || tleFiles.length === 0) {
     console.warn('No TLE files available for switching.')
