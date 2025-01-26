@@ -187,12 +187,6 @@ function createControls() {
       TLEinput.focus()
     }
 
-    // // Select TLE from a list.
-    // this.selectTLE = function () {
-    //   const SelectContainer = document.getElementById('TLESelectcontainer')
-    //   SelectContainer.style.visibility = 'visible'
-    // }
-
     // Initialize TLE from a string.
     this.insertList = function () {
       const listContainer = document.getElementById('TLEListcontainer')
@@ -227,60 +221,15 @@ function createControls() {
     }
   })()
 
-  /**
-   * Configure time.
-   */
-  // function configureTime() {
-  //   if (!guiControls.enableClock) {
-  //     const newDate = new Date(
-  //       guiControls.dateYear,
-  //       parseInt(guiControls.dateMonth) - 1,
-  //       guiControls.dateDay,
-  //       guiControls.timeHour,
-  //       guiControls.timeMinute,
-  //       guiControls.timeSecond
-  //     ).getTime()
-
-  //     const today = new Date().getTime()
-  //     dateDelta = newDate - today
-  //   }
-  // }
-
-  function configureTime() {
-    // if (guiControls.enableClock) {
-    //   // Reset dateDelta to 0 when using system time
-    //   //dateDelta = 0
-    //   console.log('triggered\n')
-    // } else if (satellites.length > 0 && firstSatelliteEpoch) {
-    //   // Set dateDelta based on satellite epoch time
-    //   const epochTime = new Date(firstSatelliteEpoch).getTime()
-    //   const systemTime = new Date().getTime()
-    //   dateDelta = epochTime - systemTime // Calculate offset
-    // } else {
-    //   // Set dateDelta based on manual GUI time
-    //   const manualTime = new Date(
-    //     guiControls.dateYear,
-    //     parseInt(guiControls.dateMonth) - 1,
-    //     guiControls.dateDay,
-    //     guiControls.timeHour,
-    //     guiControls.timeMinute,
-    //     guiControls.timeSecond
-    //   ).getTime()
-    //   const systemTime = new Date().getTime()
-    //   dateDelta = manualTime - systemTime // Calculate offset
-    // }
-  }
-
   gui = new dat.GUI({ width: 300 }) // Adjust the width as needed
 
   osvControls.targetName = gui
     .add(guiControls, 'targetName')
     .name('Target Name')
-  //osvControls.insertTLE = gui.add(guiControls, 'insertTLE').name('Insert TLE')
+
   osvControls.insertList = gui
     .add(guiControls, 'insertList')
     .name('Insert TLE List')
-  //osvControls.selectTLE = gui.add(guiControls, 'selectTLE').name('Select TLE')
 
   // Select TLE controls.
 
@@ -301,14 +250,6 @@ function createControls() {
   tleFolder2
     .add(guiControls, 'selectTLEByCatalog')
     .name('Select TLE by Catalog Number')
-
-  // guiControls.uploadTLEFileByName = function () {
-  //   document.getElementById('TLEFileInputByName').click()
-  // }
-
-  // guiControls.uploadTLEFileByCatalog = function () {
-  //   document.getElementById('TLEFileInputByCatalog').click()
-  // }
 
   // Moving ISL features to the top.
 
@@ -437,7 +378,6 @@ function createControls() {
     })
 
   const cameraFolder = gui.addFolder('Camera')
-  //displayFolder.add(guiControls, 'enableLocation');
   cameraControls.frame = cameraFolder
     .add(guiControls, 'frame', ['ECEF', 'J2000'])
     .name('Frame')
