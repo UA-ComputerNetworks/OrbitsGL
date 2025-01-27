@@ -60,23 +60,18 @@ This document provides detailed steps for testing all major functionalities of t
      - Upload `ISL_ByName_Testing.txt` (formatted as `satelliteName1,satelliteName2`).
    - **ISL by Catalog**:
      - Upload `ISL_ByCatalog_Testing.txt` (formatted as `catalogNumber1,catalogNumber2`).
-   - **ISL Style (Optional)**:
-     - Upload `ISL_Style_Testing.txt` (formatted as `R,G,B,style,width`).
 3. Verify visualization:
    - Links appear between specified satellites.
-   - Styles are applied correctly if the ISL Style file is uploaded.
 
 ### Expected Results:
 
 - ISL connections render between satellites.
-- Styles such as color and thickness apply correctly if specified.
 
 ### File Location for Testing:
 
 - TLE File: `Testing/InterSatellite_Link_Testing/Starlink_70_20231030160003.txt`
 - ISL Name File: `Testing/InterSatellite_Link_Testing/ISL_ByName_Testing.txt`
 - ISL Catalog File: `Testing/InterSatellite_Link_Testing/ISL_ByCatalog_Testing.txt`
-- ISL Style File (Optional): `Testing/InterSatellite_Link_Testing/ISL_Style_Testing.txt`
 
 ---
 
@@ -157,6 +152,19 @@ This document provides detailed steps for testing all major functionalities of t
 
 - Time progression speeds up or slows down based on the warp size.
 
+## 6. Toggle Satellite Orbit Lines
+
+### Steps:
+
+1. Upload the required TLE file as described in **Select Satellite Functionality**.
+2. In the **Display** section of the GUI, locate the **Orbit Lines** toggle option.
+3. Toggle **Orbit Lines** on or off to control the visibility of the orbit paths for selected satellites.
+
+### Expected Results:
+
+- Orbit lines for selected satellites are visible when **Orbit Lines** is enabled.
+- Orbit lines disappear when **Orbit Lines** is toggled off.
+
 ---
 
 ## Testing Checklist
@@ -174,5 +182,3 @@ This document provides detailed steps for testing all major functionalities of t
 | Time Wrapping            | Adjust warp size                  | Time progression changes observed   |
 
 ---
-
-Let me know if further clarifications or edits are needed!
