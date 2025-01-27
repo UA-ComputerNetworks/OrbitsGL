@@ -71,6 +71,8 @@ var frameControls = {}
  */
 var keplerControls = {}
 
+function configureTime() {}
+
 /**
  * Create GUI controls.
  */
