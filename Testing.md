@@ -1,107 +1,178 @@
-# Testing
+# Testing Guide
 
-## 1. Select Satellite Functionality
+This document provides detailed steps for testing all major functionalities of the satellite visualization system. It includes information on file locations, feature-specific instructions, and expected outcomes.
+
+---
+
+## 1. Select Satellite Functionality (Select TLE)
+
+### Description:
+
+- Allows the user to upload TLE files and visualize satellites.
+- Satellites can be selected by **Name** or **Catalog Number** for additional operations.
+- File names and colors are used for visual differentiation.
 
 ### Steps:
 
-1. Navigate to the `Testing/SelectSatellite_Testing` folder.
+1. Navigate to the **`Testing/SelectSatellite_Testing`** folder.
 2. Upload the required TLE file:
-   - **File:** `Starlink_20231116160005.txt`
+   - **File**: `Starlink_20231116160005.txt` (TLE file for testing).
    - Use the **Insert TLE List** option in the GUI to populate the satellites.
-3. Open the **Select Dialog** in the GUI:
-   - Select one of the provided files in the folder:
-     - `SelectDialog_Testing1.txt`
-     - `SelectDialog_Testing2.txt`
-   - Alternatively, directly select satellites populated in the dialog (from the uploaded TLE list) but the satellites will be default colored.
-4. Verify satellite visualization:
-   - Select satellites from the dialog. The selected satellites should appear in the visualization but without colors by default.
-5. **Toggle Satellite Orbit Lines:**
-   - Go to the **Display** section of the GUI.
-   - Enable/disable **Orbit Lines** to show or hide the orbit paths for the selected satellites.
+3. Open the **Select TLE by Name** or **Select TLE by Catalog** options in the GUI:
+   - **For Name**:
+     - Upload `SelectTLE_Testing_ByName.txt` (formatted as `satelliteName,R,G,B`).
+   - **For Catalog**:
+     - Upload `SelectTLE_Testing_ByCatalog.txt` (formatted as `catalogNumber,R,G,B`).
+4. Verify visualization:
+   - Selected satellites appear with their assigned colors.
+   - If a satellite does not have a color in the file, it defaults to `[200, 200, 200]`.
+5. Toggle Satellite Orbit Lines:
+   - In the **Display** section of the GUI, enable or disable **Orbit Lines**.
 
 ### Expected Results:
 
 - Satellites from the uploaded TLE file populate the selection dialog.
-- Selected satellites display in the visualization.
-- Orbit lines are visible when **Orbit Lines** is enabled and disappear when toggled off.
+- Satellites display with the correct colors based on the file.
+- Orbit lines toggle correctly based on the **Orbit Lines** option.
+
+### File Location for Testing:
+
+- TLE File: `Testing/SelectSatellite_Testing/Starlink_20231116160005.txt`
+- Name File: `Testing/SelectSatellite_Testing/SelectTLE_Testing_ByName.txt`
+- Catalog File: `Testing/SelectSatellite_Testing/SelectTLE_Testing_ByCatalog.txt`
 
 ---
 
-## 2. Inter-Satellite Link (ISL) Visualizations
+## 2. Inter-Satellite Links (ISL)
+
+### Description:
+
+- Enables visualization of links between satellites based on provided files.
+- Supports files specifying ISLs by **Name** or **Catalog Number**.
+- Optional styles for ISLs can include color, width, and line type.
 
 ### Steps:
 
-1. Navigate to the `InterSatellite_Link_Testing` folder.
+1. Navigate to the **`Testing/InterSatellite_Link_Testing`** folder.
 2. Upload the required files:
-   - **TLE File:** `Starlink_70_20231030160003.txt` via **Insert TLE List**.
-   - **ISL File:** `ISL_Satellites.txt` via the **ISL Upload** option.
-3. We have ISL_Style.txt option but it is still not decided how to utilize it. So, we haven't implemented it yet. It does not work. Please do not use this.
-
-4. Verify the visualization:
-   - Links between the satellites specified in `ISL_Satellites.txt` should appear.
+   - **TLE File**: `Starlink_70_20231030160003.txt` via **Insert TLE List**.
+   - **ISL by Name**:
+     - Upload `ISL_ByName_Testing.txt` (formatted as `satelliteName1,satelliteName2`).
+   - **ISL by Catalog**:
+     - Upload `ISL_ByCatalog_Testing.txt` (formatted as `catalogNumber1,catalogNumber2`).
+   - **ISL Style (Optional)**:
+     - Upload `ISL_Style_Testing.txt` (formatted as `R,G,B,style,width`).
+3. Verify visualization:
+   - Links appear between specified satellites.
+   - Styles are applied correctly if the ISL Style file is uploaded.
 
 ### Expected Results:
 
-- ISL connections render between specified satellite pairs.
+- ISL connections render between satellites.
+- Styles such as color and thickness apply correctly if specified.
+
+### File Location for Testing:
+
+- TLE File: `Testing/InterSatellite_Link_Testing/Starlink_70_20231030160003.txt`
+- ISL Name File: `Testing/InterSatellite_Link_Testing/ISL_ByName_Testing.txt`
+- ISL Catalog File: `Testing/InterSatellite_Link_Testing/ISL_ByCatalog_Testing.txt`
+- ISL Style File (Optional): `Testing/InterSatellite_Link_Testing/ISL_Style_Testing.txt`
 
 ---
 
-## 3. Start from Present Time/Epoch Time
+## 3. Multi-TLE File Handling
+
+### Description:
+
+- Supports uploading multiple TLE files for satellites.
+- Files are sorted by **epoch time** and dynamically switched during the simulation based on the current time.
 
 ### Steps:
 
-1. Test the **Start From Present** toggle in the **Time** section of the GUI:
-   - **Start From Present:**
-     - The simulation starts from the current system time.
-     - Time wrapping updates dynamically.
-   - **Start From Present OFF:**
-     - The simulation starts from the epoch time of the first satellite in the uploaded TLE file (`Starlink_20231116160005.txt` or `Starlink_70_20231030160003.txt`).
-2. Use the **Insert TLE List** option to upload one of the TLE files.
-3. Observe how the simulation time changes based on the toggle.
+1. Navigate to the **`Testing/MultiTLE_Testing`** folder.
+2. Upload multiple TLE files via the **Insert TLE List** option.
+   - Files should have timestamps in their names, e.g., `Starlink_20231101000000.txt`.
+3. Enable the **Start from Present Time** toggle or keep it off:
+   - **Enabled**: The simulation uses the current system time.
+   - **Disabled**: The simulation uses the epoch time of the first satellite in the file.
+4. Adjust the simulation time using the **Time Warp** feature:
+   - Increase/decrease warp size to observe dynamic switching.
+5. Verify:
+   - Files are sorted by timestamp.
+   - The system switches files based on the simulation time.
 
 ### Expected Results:
 
-- When **Start From Present**, the simulation uses the system clock for time progression.
-- When **Start From Present**, the simulation uses the epoch time of the first satellite from the uploaded TLE file.
+- TLE files are correctly sorted by timestamp.
+- Dynamic switching occurs between TLE files as the simulation time progresses.
+
+### File Location for Testing:
+
+- TLE Files:
+  - `Testing/MultiTLE_Testing/Starlink_20231101000000.txt`
+  - `Testing/MultiTLE_Testing/Starlink_20231102000000.txt`
 
 ---
 
-## 4. Time Wrapping
+## 4. Start from Present Time or Epoch Time
+
+### Description:
+
+- Determines the starting time for the simulation:
+  - **Start from Present Time**: Uses the system clock.
+  - **Start from Epoch Time**: Uses the epoch of the first satellite in the uploaded TLE file.
 
 ### Steps:
 
-1. Enable the **Time Warp** feature in the **Time** section of the GUI.
-2. Adjust the **warp size** (in seconds) to control how fast time progresses in the simulation.
-3. Test with both **Start From Present ON** and **Start From Present OFF** modes.
+1. Upload the required TLE file using **Insert TLE List**.
+2. Toggle **Start from Present Time** in the **Time** section:
+   - **Enabled**: The system clock is used.
+   - **Disabled**: The epoch time of the first satellite is used.
+3. Verify time progression in the GUI.
 
 ### Expected Results:
 
-- Time wrapping accelerates or decelerates time progression based on the warp size value.
-- Time wrapping works independently of the "Start From Present" toggle.
+- **Enabled**: The simulation time matches the system clock.
+- **Disabled**: The simulation starts from the first satellite's epoch.
+
+### File Location for Testing:
+
+- TLE File: `Testing/StartTime_Testing/Starlink_20231116160005.txt`
 
 ---
 
-## 5. Toggle Satellite Orbit Lines
+## 5. Time Wrapping
+
+### Description:
+
+- Adjusts the speed of time progression in the simulation.
 
 ### Steps:
 
-1. Upload the required TLE file as described in **Select Satellite Functionality**.
-2. In the **Display** section of the GUI, locate the **Orbit Lines** toggle option.
-3. Toggle **Orbit Lines** on or off to control the visibility of the orbit paths for selected satellites.
+1. Enable the **Time Warp** feature in the **Time** section.
+2. Adjust the warp size (in seconds).
+3. Observe the effect on satellite motion and file switching.
 
 ### Expected Results:
 
-- Orbit lines for selected satellites are visible when **Orbit Lines** is enabled.
-- Orbit lines disappear when **Orbit Lines** is toggled off.
+- Time progression speeds up or slows down based on the warp size.
 
 ---
 
-## 6. Feature Request for Custom Time
+## Testing Checklist
 
-### Implemented Features:
+| Feature                  | Action                            | Expected Outcome                    |
+| ------------------------ | --------------------------------- | ----------------------------------- |
+| Insert TLE               | Upload a TLE file                 | Satellites parsed and visualized    |
+| Select TLE by Name       | Upload Select TLE by Name file    | Satellites and colors visualized    |
+| Select TLE by Catalog    | Upload Select TLE by Catalog file | Satellites and colors visualized    |
+| ISL Upload by Name       | Upload ISL file by Name           | ISLs drawn between satellites       |
+| ISL Upload by Catalog    | Upload ISL file by Catalog        | ISLs drawn between satellites       |
+| ISL Style                | Upload ISL style file             | ISL lines styled as specified       |
+| Multi-TLE File Handling  | Upload multiple TLE files         | Epoch-based file switching verified |
+| Start from Present/Epoch | Toggle start mode                 | Correct simulation time behavior    |
+| Time Wrapping            | Adjust warp size                  | Time progression changes observed   |
 
-1. The ability to start simulations from:
-   - **Current Time (Start from Present Time)**
-   - **Epoch Time of the First Satellite**
-2. Time wrapping that works independently of the time source.
-3. Orbit lines that can be toggled on or off for selected satellites.
+---
+
+Let me know if further clarifications or edits are needed!
