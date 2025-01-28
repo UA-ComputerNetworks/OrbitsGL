@@ -43,7 +43,7 @@ function parseShortestPathFile(content) {
   console.log('Parsed Shortest Paths:', shortestPaths)
 
   // Visualize the paths
-  visualizeShortestPaths(matrix, nutPar, today)
+  //visualizeShortestPaths(matrix, nutPar, today)
 }
 
 function visualizeShortestPaths(matrix, nutPar, today) {
