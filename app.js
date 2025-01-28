@@ -416,6 +416,7 @@ function drawScene(time) {
   requestAnimationFrame(drawScene)
 
   drawISLLines(matrix, nutPar, today)
+  visualizeShortestPaths(matrix, nutPar, today)
 
   drawing = false
 }
@@ -1059,5 +1060,55 @@ function createOsvForISLSatellite(satellite, today) {
       `Error in createOsvForISLSatellite for ${satellite.name}:`,
       error
     )
+  }
+}
+
+function drawShortestPath(matrix, nutPar, satelliteIds, today) {
+  const highlightColor1 = [255, 255, 0] // Green for one end
+  for (let i = 0; i < satelliteIds.length - 1; i++) {
+    const sat1Name = satelliteIds[i] // Treat IDs as names
+    const sat2Name = satelliteIds[i + 1]
+
+    const sat1 = satelliteObjects[sat1Name] // Get satellite by name
+    const sat2 = satelliteObjects[sat2Name]
+
+    if (!sat1) {
+      console.warn(`Satellite ${sat1Name} not found in satelliteObjects`)
+    }
+    if (!sat2) {
+      console.warn(`Satellite ${sat2Name} not found in satelliteObjects`)
+    }
+
+    // Ensure OSV propagation for both satellites
+    if (sat1 && !sat1.osvProp) {
+      createOsvForISLSatellite(sat1, today)
+    }
+    if (sat2 && !sat2.osvProp) {
+      createOsvForISLSatellite(sat2, today)
+    }
+
+    if (sat1 && sat2 && sat1.osvProp && sat2.osvProp) {
+      drawSatellite(sat1, matrix, nutPar, highlightColor1, satelliteScale)
+      drawSatellite(sat2, matrix, nutPar, highlightColor1, satelliteScale)
+      const osv1 = Frames.osvJ2000ToECEF(sat1.osvProp, nutPar)
+      const osv2 = Frames.osvJ2000ToECEF(sat2.osvProp, nutPar)
+
+      const [x1, y1, z1] = MathUtils.vecmul(osv1.r, 0.001)
+      const [x2, y2, z2] = MathUtils.vecmul(osv2.r, 0.001)
+
+      const linePoints = [
+        [x1, y1, z1],
+        [x2, y2, z2],
+      ]
+
+      const color = [0, 255, 0] // Green for shortest paths
+      lineShaders.setStyle(5, 'solid') // Set line style and thickness
+      lineShaders.setGeometry(linePoints, color)
+      lineShaders.draw(matrix)
+    } else {
+      console.warn(
+        `Path not drawn: Missing propagated data for ${sat1Name} or ${sat2Name}`
+      )
+    }
   }
 }

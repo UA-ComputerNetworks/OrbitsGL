@@ -711,4 +711,17 @@ function createControls() {
 
   osvControls.insertOSV = gui.add(guiControls, 'insertOSV').name('Insert OSV')
   osvControls.exportOSV = gui.add(guiControls, 'exportOSV').name('Export OSV')
+
+  // Add Shortest Path Visualization folder
+  const shortestPathFolder = gui.addFolder('Shortest Path Visualization')
+
+  // Add GUI controls for file upload
+  guiControls.uploadShortestPathFile = function () {
+    document.getElementById('ShortestPathFileInput').click() // Trigger file upload directly
+  }
+
+  // Add options to the GUI
+  shortestPathFolder
+    .add(guiControls, 'uploadShortestPathFile')
+    .name('Upload Shortest Path File')
 }
