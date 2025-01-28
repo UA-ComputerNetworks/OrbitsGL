@@ -1062,6 +1062,7 @@ function createOsvForISLSatellite(satellite, today) {
     )
   }
 }
+
 function drawShortestPath(matrix, nutPar, satelliteIds, today) {
   console.log(`Visualizing shortest path for satellites:`, satelliteIds)
   console.log(`Today:`, today)
