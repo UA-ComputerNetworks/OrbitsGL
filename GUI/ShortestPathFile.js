@@ -56,7 +56,7 @@ function parseShortestPathFile(content) {
  * @param {Object} nutPar - Nutation parameters
  * @param {Date} currentTime - The current time for visualization
  */
-function visualizeShortestPaths(matrix, nutPar, currentTime) {
+function visualizeShortestPaths(matrix, nutPar, today) {
   if (!shortestPaths.length) {
     console.warn('No shortest paths to visualize.')
     return
@@ -65,7 +65,7 @@ function visualizeShortestPaths(matrix, nutPar, currentTime) {
   let pathToVisualize = null
 
   // Handle cases before the first timestamp
-  if (currentTime < shortestPaths[0].timestamp) {
+  if (today < shortestPaths[0].timestamp) {
     pathToVisualize = shortestPaths[0]
     currentPathIndex = 0
     console.log(
@@ -73,7 +73,7 @@ function visualizeShortestPaths(matrix, nutPar, currentTime) {
     )
   }
   // Handle cases after the last timestamp
-  else if (currentTime >= shortestPaths[shortestPaths.length - 1].timestamp) {
+  else if (today >= shortestPaths[shortestPaths.length - 1].timestamp) {
     pathToVisualize = shortestPaths[shortestPaths.length - 1]
     currentPathIndex = shortestPaths.length - 1
     console.log(
@@ -83,7 +83,7 @@ function visualizeShortestPaths(matrix, nutPar, currentTime) {
   // Handle cases between timestamps
   else {
     for (let i = currentPathIndex + 1; i < shortestPaths.length; i++) {
-      if (shortestPaths[i].timestamp <= currentTime) {
+      if (shortestPaths[i].timestamp <= today) {
         currentPathIndex = i
         pathToVisualize = shortestPaths[i]
       } else {

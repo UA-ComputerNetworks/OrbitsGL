@@ -1092,40 +1092,43 @@ function drawShortestPath(matrix, nutPar, satelliteIds, today) {
       console.log(`Satellite ${sat2Name} found. OSV:`, sat2.osvProp)
     }
 
-    // Ensure OSV propagation for both satellites
-    if (sat1 && !sat1.osvProp) {
-      console.log(`Propagating OSV for ${sat1Name}`)
-      createOsvForISLSatellite(sat1, today)
-      console.log(`OSV after propagation for ${sat1Name}:`, sat1.osvProp)
-    }
+    // // Ensure OSV propagation for both satellites
+    // if (sat1 && !sat1.osvProp) {
+    //   console.log(`Propagating OSV for ${sat1Name}`)
+    //   createOsvForISLSatellite(sat1, today)
+    //   console.log(`OSV after propagation for ${sat1Name}:`, sat1.osvProp)
+    // }
 
-    if (sat2 && !sat2.osvProp) {
-      console.log(`Propagating OSV for ${sat2Name}`)
-      createOsvForISLSatellite(sat2, today)
-      console.log(`OSV after propagation for ${sat2Name}:`, sat2.osvProp)
-    }
+    // if (sat2 && !sat2.osvProp) {
+    //   console.log(`Propagating OSV for ${sat2Name}`)
+    //   createOsvForISLSatellite(sat2, today)
+    //   console.log(`OSV after propagation for ${sat2Name}:`, sat2.osvProp)
+    // }
 
-    if (
-      !sat1.osvProp.ts ||
-      !(sat1.osvProp.ts instanceof Date && !isNaN(sat1.osvProp.ts))
-    ) {
-      console.error(
-        `Invalid or missing 'ts' in OSV for ${sat1Name}:`,
-        sat1.osvProp
-      )
-      createOsvForISLSatellite(sat1, today)
-    }
+    // if (
+    //   !sat1.osvProp.ts ||
+    //   !(sat1.osvProp.ts instanceof Date && !isNaN(sat1.osvProp.ts))
+    // ) {
+    //   console.error(
+    //     `Invalid or missing 'ts' in OSV for ${sat1Name}:`,
+    //     sat1.osvProp
+    //   )
+    //   createOsvForISLSatellite(sat1, today)
+    // }
 
-    if (
-      !sat2.osvProp.ts ||
-      !(sat2.osvProp.ts instanceof Date && !isNaN(sat2.osvProp.ts))
-    ) {
-      console.error(
-        `Invalid or missing 'ts' in OSV for ${sat2Name}:`,
-        sat2.osvProp
-      )
-      createOsvForISLSatellite(sat2, today)
-    }
+    // if (
+    //   !sat2.osvProp.ts ||
+    //   !(sat2.osvProp.ts instanceof Date && !isNaN(sat2.osvProp.ts))
+    // ) {
+    //   console.error(
+    //     `Invalid or missing 'ts' in OSV for ${sat2Name}:`,
+    //     sat2.osvProp
+    //   )
+    //   createOsvForISLSatellite(sat2, today)
+    // }
+
+    createOsvForISLSatellite(sat1, today)
+    createOsvForISLSatellite(sat2, today)
 
     if (sat1 && sat2 && sat1.osvProp && sat2.osvProp) {
       console.log(`Both satellites have OSVs. Drawing segment.`)
