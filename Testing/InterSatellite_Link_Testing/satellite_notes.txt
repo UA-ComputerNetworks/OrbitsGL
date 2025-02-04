@@ -1,0 +1,12 @@
+notes of satellites
+
+Make them in UTC always.
+
+
+UTC Time	Satellites
+Monday, 30 October 2023, 03:15 AM (UTC)	[55281, 55398]
+Monday, 30 October 2023, 08:45 AM (UTC)	[55276, 55275, 55274]
+Monday, 30 October 2023, 01:00 PM (UTC)	[55275, 55279, 55277, 55400]
+Monday, 30 October 2023, 01:30 PM (UTC)	[55276, 55281, 55279]
+Monday, 30 October 2023, 04:00 PM (UTC)	[55275, 55279, 55277, 55400]
+Monday, 30 October 2023, 06:20 PM (UTC)	[55398, 55403, 55400, 55277]

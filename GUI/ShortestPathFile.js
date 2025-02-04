@@ -17,7 +17,7 @@ document.getElementById('ShortestPathFileInput').onchange = function (event) {
   }
 }
 let shortestPaths = []
-let currentPathIndex = -1 // Track the current path index
+let currentShortestPathIndex = -1 // Track the current path index
 
 /**
  * Parse the shortest path file and store paths for visualization.
@@ -50,53 +50,53 @@ function parseShortestPathFile(content) {
   console.log('Parsed Shortest Paths:', shortestPaths)
 }
 
-/**
- * Visualize the shortest path for the current time.
- * @param {Matrix} matrix - View matrix
- * @param {Object} nutPar - Nutation parameters
- * @param {Date} currentTime - The current time for visualization
- */
 function visualizeShortestPaths(matrix, nutPar, today) {
   if (!shortestPaths.length) {
     console.warn('No shortest paths to visualize.')
     return
   }
 
-  let pathToVisualize = null
+  let newPathIndex = currentShortestPathIndex // Start from the current index
 
-  // Handle cases before the first timestamp
+  // If `today` is before the first path timestamp, use the first available path
   if (today < shortestPaths[0].timestamp) {
-    pathToVisualize = shortestPaths[0]
-    currentPathIndex = 0
-    console.log(
-      `Current time is before the first timestamp. Visualizing the first path.`
-    )
+    newPathIndex = 0
   }
-  // Handle cases after the last timestamp
+  // If `today` is after the last path timestamp, use the last available path
   else if (today >= shortestPaths[shortestPaths.length - 1].timestamp) {
-    pathToVisualize = shortestPaths[shortestPaths.length - 1]
-    currentPathIndex = shortestPaths.length - 1
-    console.log(
-      `Current time is after the last timestamp. Visualizing the last path.`
-    )
+    newPathIndex = shortestPaths.length - 1
   }
-  // Handle cases between timestamps
-  else {
-    for (let i = currentPathIndex + 1; i < shortestPaths.length; i++) {
+  // If `today` is moving forward in time, find the next valid path
+  else if (shortestPaths[newPathIndex].timestamp < today) {
+    for (let i = newPathIndex + 1; i < shortestPaths.length; i++) {
+      if (shortestPaths[i].timestamp > today) {
+        break // Stop when reaching the first future timestamp
+      }
+      newPathIndex = i
+    }
+  }
+  // If `today` is moving backward in time, find the closest previous path
+  else if (shortestPaths[newPathIndex].timestamp > today) {
+    for (let i = newPathIndex - 1; i >= 0; i--) {
       if (shortestPaths[i].timestamp <= today) {
-        currentPathIndex = i
-        pathToVisualize = shortestPaths[i]
-      } else {
+        newPathIndex = i
         break
       }
     }
   }
 
-  if (pathToVisualize) {
-    const { timestamp, satelliteIds } = pathToVisualize
-    console.log(`At ${timestamp}, visualizing path:`, satelliteIds)
+  // Always draw the path if a valid one exists
+  const pathToVisualize = shortestPaths[newPathIndex]
+  console.log(`Visualizing shortest path at ${pathToVisualize.timestamp}`)
+  console.log(
+    `Path index: ${newPathIndex}, Satellites:`,
+    pathToVisualize.satelliteIds
+  )
 
-    // Call drawShortestPath for the current path
-    drawShortestPath(matrix, nutPar, satelliteIds, today)
-  }
+  console.log(shortestPaths)
+
+  drawShortestPath(matrix, nutPar, pathToVisualize.satelliteIds, today)
+
+  // Update the index only when the path actually changes
+  currentShortestPathIndex = newPathIndex
 }
