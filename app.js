@@ -5,6 +5,14 @@ var earthShaders = null
 var lineShaders = null
 var pointShaders = null
 
+const groundStations = [
+  { name: 'Los Angeles, CA', lat: 34.0522, lon: -118.2437, alt: 0 },
+  { name: 'Redmond, WA (Starlink HQ)', lat: 47.6731, lon: -122.1185, alt: 0 },
+  { name: 'Hawthorne, CA (SpaceX HQ)', lat: 33.9206, lon: -118.3272, alt: 0 },
+  { name: 'Boca Chica, TX', lat: 26.014, lon: -97.1562, alt: 0 },
+  { name: 'Orlando, FL', lat: 28.5383, lon: -81.3792, alt: 0 },
+]
+
 // SGP4 test:
 var tleLine1 =
     '1 25544U 98067A   21356.70730882  .00006423  00000+0  12443-3 0  9993',
@@ -417,6 +425,16 @@ function drawScene(time) {
 
   drawISLLines(matrix, nutPar, today)
   visualizeShortestPaths(matrix, nutPar, today)
+
+  // For groundStations visualisation.
+
+  // Convert to ECEF before rendering
+  groundStations.forEach((station) => {
+    station.positionECEF = latLonToECEF(station.lat, station.lon, station.alt)
+    console.log(`Ground station ${station.name} ECEF:`, station.positionECEF)
+  })
+
+  //drawGroundStations(matrix, nutPar)
 
   drawing = false
 }
@@ -1131,3 +1149,94 @@ function drawShortestPath(matrix, nutPar, satelliteIds, today) {
     }
   }
 }
+
+// For groundstations.
+
+function latLonToECEF(lat, lon, alt = 0) {
+  const R = 6371 // Earth's radius in km
+  const latRad = (Math.PI / 180) * lat
+  const lonRad = (Math.PI / 180) * lon
+
+  const X = (R + alt) * Math.cos(latRad) * Math.cos(lonRad)
+  const Y = (R + alt) * Math.cos(latRad) * Math.sin(lonRad)
+  const Z = (R + alt) * Math.sin(latRad)
+
+  return [X, Y, Z] // Returns ECEF coordinates
+}
+
+function drawGroundStations(matrix, nutPar) {
+  groundStations.forEach((station) => {
+    console.log(`Rendering ground station: ${station.name}`)
+
+    // Convert ECEF to J2000 frame
+    const groundStationObj = {
+      osvProp: Frames.ECEFToJ2000(
+        { r: station.positionECEF, v: [0, 0, 0], ts: new Date() },
+        nutPar
+      ),
+    }
+
+    if (!groundStationObj.osvProp) {
+      console.error(`Failed to convert ECEF to J2000 for ${station.name}`)
+      return
+    }
+
+    const highlightColor = [0, 255, 0] // Green for ground stations
+    const satelliteScale = 0.05 // Increase visibility
+
+    console.log(
+      `Ground station ${station.name} will be drawn at:`,
+      groundStationObj.osvProp.r
+    )
+
+    drawSatellite(
+      groundStationObj,
+      matrix,
+      nutPar,
+      highlightColor,
+      satelliteScale
+    )
+  })
+}
+
+// function drawGroundStations(matrix, nutPar) {
+//   groundStations.forEach((station) => {
+//     console.log(`Rendering ground station: ${station.name}`)
+
+//     // Use satellite conversion methods
+//     const osvTeme = sgp4.coordECEFToTEME(
+//       { r: station.positionECEF, v: [0, 0, 0] },
+//       nutPar
+//     )
+//     const osvJ2000 = sgp4.coordTemeJ2000(osvTeme)
+
+//     if (!osvJ2000 || !osvJ2000.r) {
+//       console.error(`Conversion failed for ${station.name}`, osvTeme)
+//       return
+//     }
+
+//     const groundStationObj = {
+//       osvProp: {
+//         r: osvJ2000.r,
+//         v: [0, 0, 0], // No velocity since it's stationary
+//         ts: new Date(),
+//       },
+//     }
+
+//     const highlightColor = [0, 255, 0] // Green for ground stations
+//     const satelliteScale = 0.1 // Increase visibility
+
+//     console.log(
+//       `Ground station ${station.name} J2000 coords:`,
+//       groundStationObj.osvProp.r
+//     )
+
+//     drawSatellite(
+//       groundStationObj,
+//       matrix,
+//       nutPar,
+//       highlightColor,
+//       satelliteScale
+//     )
+//   })
+// }
