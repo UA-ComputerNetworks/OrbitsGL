@@ -289,21 +289,38 @@ Frames.posECEFToCEP = function (JT, JD, rECEF, nutPar) {
 }
 
 Frames.ECEFToJ2000 = function (osvECEF, nutPar) {
-  if (!osvECEF || !osvECEF.r) {
-    console.error('Invalid ECEF coordinates provided.')
+  if (!osvECEF || !osvECEF.r || !Array.isArray(osvECEF.r)) {
+    console.error('Invalid ECEF coordinates for conversion.')
     return null
   }
 
-  const T = TimeConversions.computeJulianTime(osvECEF.ts) // Compute Julian centuries
-
-  const rotationMatrix = Nutation.getRotationMatrix(T, nutPar)
-  if (!rotationMatrix) {
-    console.error('Rotation matrix computation failed.')
+  const nutationMatrix = Nutation.getRotationMatrix(nutPar)
+  if (!nutationMatrix) {
+    console.error('Failed to compute nutation matrix.')
     return null
   }
 
-  // Apply rotation to position vector
-  const rJ2000 = MathUtils.matVecMul(rotationMatrix, osvECEF.r)
+  function matrixVectorMultiply(matrix, vector) {
+    return [
+      matrix[0][0] * vector[0] +
+        matrix[0][1] * vector[1] +
+        matrix[0][2] * vector[2],
+      matrix[1][0] * vector[0] +
+        matrix[1][1] * vector[1] +
+        matrix[1][2] * vector[2],
+      matrix[2][0] * vector[0] +
+        matrix[2][1] * vector[1] +
+        matrix[2][2] * vector[2],
+    ]
+  }
 
-  return { r: rJ2000, v: [0, 0, 0], ts: osvECEF.ts }
+  // Apply nutation transformation
+  const rJ2000 = matrixVectorMultiply(nutationMatrix, osvECEF.r)
+  const vJ2000 = matrixVectorMultiply(nutationMatrix, osvECEF.v || [0, 0, 0]) // Default to zero velocity
+
+  return {
+    r: rJ2000,
+    v: vJ2000,
+    ts: osvECEF.ts,
+  }
 }

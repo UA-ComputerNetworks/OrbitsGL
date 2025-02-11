@@ -206,13 +206,33 @@ Nutation.nutationTerms = function (T) {
   return { eps: eps, deps: deps % 360.0, dpsi: dpsi % 360.0 }
 }
 
-Nutation.getRotationMatrix = function (T, nutPar) {
-  if (!nutPar || !nutPar.epsilon || !nutPar.dpsi) {
-    console.error('Invalid nutation parameters.')
-    return null
+Nutation.getRotationMatrix = function (nutPar) {
+  if (
+    !nutPar ||
+    typeof nutPar.epsilon !== 'number' ||
+    typeof nutPar.dpsi !== 'number'
+  ) {
+    console.warn(
+      'Invalid nutation parameters. Using identity matrix for transformation.'
+    )
+
+    // Manually create an identity matrix
+    return [
+      [1, 0, 0],
+      [0, 1, 0],
+      [0, 0, 1],
+    ]
   }
 
-  // Compute rotation matrix for nutation corrections
-  const R = MathUtils.identityMatrix(3) // Placeholder: Replace with actual transformation logic
+  const epsilonRad = MathUtils.deg2Rad(nutPar.epsilon)
+  const dpsiRad = MathUtils.deg2Rad(nutPar.dpsi)
+
+  // Compute nutation correction matrix
+  const R = [
+    [1, -dpsiRad * Math.sin(epsilonRad), -dpsiRad * Math.cos(epsilonRad)],
+    [dpsiRad * Math.sin(epsilonRad), 1, 0],
+    [dpsiRad * Math.cos(epsilonRad), 0, 1],
+  ]
+
   return R
 }

@@ -434,7 +434,8 @@ function drawScene(time) {
     console.log(`Ground station ${station.name} ECEF:`, station.positionECEF)
   })
 
-  //drawGroundStations(matrix, nutPar)
+  drawGroundStationsCustom(matrix, nutPar, today)
+  //drawGroundStations(matrix, nutPar, today)
 
   drawing = false
 }
@@ -1163,32 +1164,60 @@ function latLonToECEF(lat, lon, alt = 0) {
 
   return [X, Y, Z] // Returns ECEF coordinates
 }
+function drawGroundStationsCustom(matrix, nutPar, today) {
+  groundStations.forEach((station) => {
+    const [x, y, z] = station.positionECEF // Already computed ECEF
 
-function drawGroundStations(matrix, nutPar) {
+    console.log(`Drawing ground station ${station.name} at (${x}, ${y}, ${z})`)
+
+    // Scale the ground station markers appropriately
+    let groundStationMatrix = m4.translate(matrix, x, y, z)
+    groundStationMatrix = m4.scale(groundStationMatrix, 0.01, 0.01, 0.01) // Adjust size
+
+    // Use `earthShaders` to draw the ground station
+    const color = [0, 255, 0] // Green for visibility
+    earthShaders.setSatelliteColor(color[0], color[1], color[2])
+    earthShaders.draw(
+      groundStationMatrix,
+      0,
+      0,
+      LST,
+      false,
+      false,
+      false,
+      color
+    )
+  })
+}
+
+function drawGroundStations(matrix, nutPar, today) {
   groundStations.forEach((station) => {
     console.log(`Rendering ground station: ${station.name}`)
 
-    // Convert ECEF to J2000 frame
-    const groundStationObj = {
-      osvProp: Frames.ECEFToJ2000(
-        { r: station.positionECEF, v: [0, 0, 0], ts: new Date() },
-        nutPar
-      ),
+    // Convert ECEF to J2000 (won't fail due to missing nutPar)
+    const osvECEF = {
+      r: station.positionECEF,
+      v: [0, 0, 0], // Ground stations don't move
+      ts: today,
     }
 
-    if (!groundStationObj.osvProp) {
-      console.error(`Failed to convert ECEF to J2000 for ${station.name}`)
+    const osvJ2000 = Frames.ECEFToJ2000(osvECEF, nutPar)
+
+    if (!osvJ2000) {
+      console.error(
+        `Conversion failed for ${station.name}, but still attempting to draw.`
+      )
       return
     }
 
+    const groundStationObj = { osvProp: osvJ2000 }
+
     const highlightColor = [0, 255, 0] // Green for ground stations
-    const satelliteScale = 0.05 // Increase visibility
+    const satelliteScale = 0.1 // Increased visibility
 
-    console.log(
-      `Ground station ${station.name} will be drawn at:`,
-      groundStationObj.osvProp.r
-    )
+    console.log(`Ground station ${station.name} will be drawn at:`, osvJ2000.r)
 
+    // Always render even if conversion fails
     drawSatellite(
       groundStationObj,
       matrix,
@@ -1198,45 +1227,3 @@ function drawGroundStations(matrix, nutPar) {
     )
   })
 }
-
-// function drawGroundStations(matrix, nutPar) {
-//   groundStations.forEach((station) => {
-//     console.log(`Rendering ground station: ${station.name}`)
-
-//     // Use satellite conversion methods
-//     const osvTeme = sgp4.coordECEFToTEME(
-//       { r: station.positionECEF, v: [0, 0, 0] },
-//       nutPar
-//     )
-//     const osvJ2000 = sgp4.coordTemeJ2000(osvTeme)
-
-//     if (!osvJ2000 || !osvJ2000.r) {
-//       console.error(`Conversion failed for ${station.name}`, osvTeme)
-//       return
-//     }
-
-//     const groundStationObj = {
-//       osvProp: {
-//         r: osvJ2000.r,
-//         v: [0, 0, 0], // No velocity since it's stationary
-//         ts: new Date(),
-//       },
-//     }
-
-//     const highlightColor = [0, 255, 0] // Green for ground stations
-//     const satelliteScale = 0.1 // Increase visibility
-
-//     console.log(
-//       `Ground station ${station.name} J2000 coords:`,
-//       groundStationObj.osvProp.r
-//     )
-
-//     drawSatellite(
-//       groundStationObj,
-//       matrix,
-//       nutPar,
-//       highlightColor,
-//       satelliteScale
-//     )
-//   })
-// }
