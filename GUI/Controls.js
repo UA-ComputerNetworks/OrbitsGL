@@ -151,7 +151,7 @@ function createControls() {
         )
         .focus()
     }
-    this.warpSeconds = 60
+    this.warpSeconds = 1
     this.timeWarp = false
     this.lockLonRot = false
     this.lockLatRot = false
@@ -251,13 +251,13 @@ function createControls() {
       }
     }
 
-    // Initialize TLE from a string.
-    this.insertTLE = function () {
-      const TLEcontainer = document.getElementById('TLEcontainer')
-      TLEcontainer.style.visibility = 'visible'
-      const TLEinput = document.getElementById('TLEinput')
-      TLEinput.focus()
-    }
+    // // Initialize TLE from a string.
+    // this.insertTLE = function () {
+    //   const TLEcontainer = document.getElementById('TLEcontainer')
+    //   TLEcontainer.style.visibility = 'visible'
+    //   const TLEinput = document.getElementById('TLEinput')
+    //   TLEinput.focus()
+    // }
 
     // Initialize TLE from a string.
     this.insertList = function () {

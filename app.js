@@ -142,6 +142,10 @@ function drawScene(time) {
   // Increment time with time warp if enabled
   if (guiControls.timeWarp) {
     dateDelta += timeControls.warpSeconds.getValue() * 1000
+  } else {
+    if (tleFiles.length == 0) {
+      dateDelta = 0
+    }
   }
 
   // Calculate "today" using base time and adjustments

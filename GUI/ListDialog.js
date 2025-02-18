@@ -78,16 +78,20 @@ TLEFileInput.onchange = function (event) {
     const reader = new FileReader()
     reader.onload = function (e) {
       const content = e.target.result
-      const timestamp = extractTimestamp(file.name)
+      let timestamp = extractTimestamp(file.name) // Try to extract timestamp
 
       if (!timestamp) {
-        console.warn(`Invalid filename format: ${file.name}`)
-        return
+        console.warn(
+          `Invalid filename format: ${file.name}, using current time as timestamp.`
+        )
+        timestamp = Date.now() // Assign current system time if no timestamp is found
       }
 
       // Store file content along with timestamp
       tleFiles.push({ name: file.name, content, timestamp })
-      console.log(`Loaded file: ${file.name}, Timestamp: ${timestamp}`)
+      console.log(
+        `Loaded file: ${file.name}, Timestamp: ${new Date(timestamp)}`
+      )
 
       // Append to textarea for display
       TLEinput.value += `${file.name}\n`
@@ -110,7 +114,6 @@ TLEFileInput.onchange = function (event) {
 // ============================
 // Processing a Single TLE File
 // ============================
-
 /**
  * Processes the content of a single TLE file.
  * Parses the TLE lines and updates satellite-related data.
@@ -118,8 +121,11 @@ TLEFileInput.onchange = function (event) {
  * @param {string} filename - TLE filename.
  */
 function processTLEFile(content, filename) {
-  const lines = content.split('\n')
-  const numElem = (lines.length + 1) / 3
+  const lines = content
+    .split('\n')
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0)
+  const numElem = Math.floor(lines.length / 3) // Determine number of TLE sets
 
   console.log(`Processing TLE file: ${filename}`)
   satellites = []
@@ -128,8 +134,13 @@ function processTLEFile(content, filename) {
   satIndexToName = []
   satelliteObjects = {}
 
-  for (let indElem = 0; indElem < Math.floor(numElem); indElem++) {
+  for (let indElem = 0; indElem < numElem; indElem++) {
     let title = lines[indElem * 3].trim()
+
+    // Check if title starts with '0 ', indicating the second TLE format
+    if (title.startsWith('0 ')) {
+      title = title.substring(2) // Remove the leading "0 "
+    }
 
     if (satelliteNames.includes(title)) {
       title += `_${indElem}`
@@ -147,13 +158,13 @@ function processTLEFile(content, filename) {
       const days = parseFloat(epochString.substring(2))
       const fullYear = year < 57 ? 2000 + year : 1900 + year
 
-      firstSatelliteEpoch = new Date(Date.UTC(fullYear, 0, 1)) // ✅ Start of year in UTC
-      firstSatelliteEpoch.setUTCDate(days) // ✅ Add fractional days in UTC
+      firstSatelliteEpoch = new Date(Date.UTC(fullYear, 0, 1))
+      firstSatelliteEpoch.setUTCDate(days)
       console.log('Epoch time of the first satellite:', firstSatelliteEpoch)
     }
 
     try {
-      const tle = sgp4.tleFromLines([lines[indElem * 3], tleLine1, tleLine2])
+      const tle = sgp4.tleFromLines([title, tleLine1, tleLine2])
       const satRec = sgp4.createTarget(tle)
 
       satellites.push(satRec)

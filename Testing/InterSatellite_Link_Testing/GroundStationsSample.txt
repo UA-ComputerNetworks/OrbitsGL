@@ -1,0 +1,24 @@
+// Starlink Ground Stations in North America
+// Comment about file format.
+Marathon, Ontario, 48.7276, -86.3761
+Saguenay, Quebec, 48.4168, -71.0653
+Sambro Creek, Nova Scotia, 44.4500, -63.6100
+St. Johns, Newfoundland, 47.5615, -52.7126
+Adelanto, California, 34.5828, -117.4092
+Anchorage, Alaska, 61.2181, -149.9003
+Arbuckle, California, 39.0184, -122.0572
+Baxley, Georgia, 31.7785, -82.3496
+Beekmantown, New York, 44.7741, -73.4610
+Bellingham, Washington, 48.7519, -122.4787
+Boca Chica, Texas, 26.0140, -97.1562
+Columbus, Ohio, 39.9612, -82.9988
+Fairbanks, Alaska, 64.8378, -147.7164
+Fort Lauderdale, Florida, 26.1224, -80.1373
+Hawthorne, California, 33.9206, -118.3272
+Ketchikan, Alaska, 55.3422, -131.6461
+Redmond, Washington, 47.6731, -122.1185
+Richardson, Texas, 32.9483, -96.7299
+San Antonio, Texas, 29.4241, -98.4936
+York, Pennsylvania, 39.9626, -76.7277
+
+// End of File
