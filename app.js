@@ -106,7 +106,7 @@ function drawScene(time) {
   const enableList = guiControls.enableList
   gui.width = 400
 
-  // Compute Julian time in UTC
+  // Compute Julian time.
   let dateNow = new Date(
     Date.UTC(
       new Date().getUTCFullYear(),
@@ -120,31 +120,28 @@ function drawScene(time) {
 
   // Calculate base time (dateNow)
   if (guiControls.enableClock) {
-    // Use current system time if "Enable Clock" is ON
-    dateNow = new Date()
+    // Use current system time in UTC if "Enable Clock" is ON
+    dateNow = dateNow
   } else if (satellites.length > 0 && firstSatelliteEpoch) {
-    // Use epoch time of the first satellite if available
-    dateNow = new Date(firstSatelliteEpoch)
+    // Use epoch time of the first satellite (Make sure it's stored in UTC)
+    dateNow = new Date(firstSatelliteEpoch.getTime())
   } else {
-    // Fallback to manual time from GUI if no epoch is available
+    // Fallback to manual time from GUI (Ensure it remains UTC)
     dateNow = new Date(
-      guiControls.dateYear,
-      parseInt(guiControls.dateMonth) - 1,
-      guiControls.dateDay,
-      guiControls.timeHour,
-      guiControls.timeMinute,
-      guiControls.timeSecond
+      Date.UTC(
+        guiControls.dateYear,
+        parseInt(guiControls.dateMonth) - 1,
+        guiControls.dateDay,
+        guiControls.timeHour,
+        guiControls.timeMinute,
+        guiControls.timeSecond
+      )
     )
   }
 
   // Increment time with time warp if enabled
   if (guiControls.timeWarp) {
     dateDelta += timeControls.warpSeconds.getValue() * 1000
-  } else {
-    // if there are no files and if we need to stop the program to work for with files and no because datenow increments.
-    if (tleFiles.length == 0) {
-      dateDelta = 0
-    }
   }
 
   // Calculate "today" using base time and adjustments
@@ -165,19 +162,12 @@ function drawScene(time) {
   )
 
   // Update GUI time display to reflect "today" (without triggering configureTime)
-  timeControls.yearControl.setValue(today.getFullYear(), false)
-  timeControls.monthControl.setValue(today.getMonth() + 1, false)
-  timeControls.dayControl.setValue(today.getDate(), false)
-  timeControls.hourControl.setValue(today.getHours(), false)
-  timeControls.minuteControl.setValue(today.getMinutes(), false)
-  timeControls.secondControl.setValue(today.getSeconds(), false)
-
-  // timeControls.yearControl.setValue(today.getUTCFullYear(), false)
-  // timeControls.monthControl.setValue(today.getUTCMonth() + 1, false)
-  // timeControls.dayControl.setValue(today.getUTCDate(), false)
-  // timeControls.hourControl.setValue(today.getUTCHours(), false)
-  // timeControls.minuteControl.setValue(today.getUTCMinutes(), false)
-  // timeControls.secondControl.setValue(today.getUTCSeconds(), false)
+  timeControls.yearControl.setValue(today.getUTCFullYear(), false)
+  timeControls.monthControl.setValue(today.getUTCMonth() + 1, false)
+  timeControls.dayControl.setValue(today.getUTCDate(), false)
+  timeControls.hourControl.setValue(today.getUTCHours(), false)
+  timeControls.minuteControl.setValue(today.getUTCMinutes(), false)
+  timeControls.secondControl.setValue(today.getUTCSeconds(), false)
 
   checkAndSwitchFiles()
 
