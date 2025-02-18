@@ -149,7 +149,14 @@ function drawScene(time) {
 
   // Calculate "today" using base time and adjustments
   today = new Date(
-    dateNow.getTime() +
+    Date.UTC(
+      dateNow.getUTCFullYear(),
+      dateNow.getUTCMonth(),
+      dateNow.getUTCDate(),
+      dateNow.getUTCHours(),
+      dateNow.getUTCMinutes(),
+      dateNow.getUTCSeconds()
+    ) +
       24 * 3600 * 1000 * guiControls.deltaDays +
       3600 * 1000 * guiControls.deltaHours +
       60 * 1000 * guiControls.deltaMins +
@@ -164,6 +171,13 @@ function drawScene(time) {
   timeControls.hourControl.setValue(today.getHours(), false)
   timeControls.minuteControl.setValue(today.getMinutes(), false)
   timeControls.secondControl.setValue(today.getSeconds(), false)
+
+  // timeControls.yearControl.setValue(today.getUTCFullYear(), false)
+  // timeControls.monthControl.setValue(today.getUTCMonth() + 1, false)
+  // timeControls.dayControl.setValue(today.getUTCDate(), false)
+  // timeControls.hourControl.setValue(today.getUTCHours(), false)
+  // timeControls.minuteControl.setValue(today.getUTCMinutes(), false)
+  // timeControls.secondControl.setValue(today.getUTCSeconds(), false)
 
   checkAndSwitchFiles()
 

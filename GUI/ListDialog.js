@@ -147,8 +147,8 @@ function processTLEFile(content, filename) {
       const days = parseFloat(epochString.substring(2))
       const fullYear = year < 57 ? 2000 + year : 1900 + year
 
-      firstSatelliteEpoch = new Date(fullYear, 0) // Start of the year
-      firstSatelliteEpoch.setDate(days) // Add fractional days
+      firstSatelliteEpoch = new Date(Date.UTC(fullYear, 0, 1)) // ✅ Start of year in UTC
+      firstSatelliteEpoch.setUTCDate(days) // ✅ Add fractional days in UTC
       console.log('Epoch time of the first satellite:', firstSatelliteEpoch)
     }
 

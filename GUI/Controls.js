@@ -516,7 +516,7 @@ function createControls() {
     .add(
       {
         reset: function () {
-          var resetDate = new Date()
+          var resetDate = new Date.UTC()
           timeControls.deltaDayControl.setValue(0)
           timeControls.deltaSecControl.setValue(0)
           timeControls.deltaMinuteControl.setValue(0)
@@ -557,20 +557,18 @@ function createControls() {
           timeControls.enableClock.setValue(0)
           const tleYear = parseInt('20' + guiControls.tleYear)
           timeControls.yearControl.setValue(tleYear)
-          let tleDate = new Date(tleYear, 0, 0)
-          tleDate = new Date(
-            tleDate.getTime() + guiControls.tleDay * 86400.0 * 1000.0
+          let tleDate = new Date(
+            Date.UTC(tleYear, 0, 0) + guiControls.tleDay * 86400.0 * 1000.0
           )
-          const utcDiffMinutes = tleDate.getTimezoneOffset()
-          tleDate = new Date(tleDate.getTime() - utcDiffMinutes * 60.0 * 1000.0)
 
           console.log(tleDate)
           console.log(guiControls.tleDay)
-          timeControls.monthControl.setValue(tleDate.getMonth() + 1)
-          timeControls.dayControl.setValue(tleDate.getDate())
-          timeControls.hourControl.setValue(tleDate.getHours())
-          timeControls.minuteControl.setValue(tleDate.getMinutes())
-          timeControls.secondControl.setValue(tleDate.getSeconds())
+
+          timeControls.monthControl.setValue(tleDate.getUTCMonth() + 1)
+          timeControls.dayControl.setValue(tleDate.getUTCDate())
+          timeControls.hourControl.setValue(tleDate.getUTCHours())
+          timeControls.minuteControl.setValue(tleDate.getUTCMinutes())
+          timeControls.secondControl.setValue(tleDate.getUTCSeconds())
         },
       },
       'setClockFromTle'
