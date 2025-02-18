@@ -431,7 +431,7 @@ function drawScene(time) {
   // Convert to ECEF before rendering
   groundStations.forEach((station) => {
     station.positionECEF = latLonToECEF(station.lat, station.lon, station.alt)
-    console.log(`Ground station ${station.name} ECEF:`, station.positionECEF)
+    //console.log(`Ground station ${station.name} ECEF:`, station.positionECEF)
   })
 
   drawGroundStationsCustom(matrix, nutPar, today)
@@ -1168,7 +1168,7 @@ function drawGroundStationsCustom(matrix, nutPar, today) {
   groundStations.forEach((station) => {
     const [x, y, z] = station.positionECEF // Already computed ECEF
 
-    console.log(`Drawing ground station ${station.name} at (${x}, ${y}, ${z})`)
+    //console.log(`Drawing ground station ${station.name} at (${x}, ${y}, ${z})`)
 
     // Scale the ground station markers appropriately
     let groundStationMatrix = m4.translate(matrix, x, y, z)
@@ -1192,7 +1192,7 @@ function drawGroundStationsCustom(matrix, nutPar, today) {
 
 function drawGroundStations(matrix, nutPar, today) {
   groundStations.forEach((station) => {
-    console.log(`Rendering ground station: ${station.name}`)
+    //console.log(`Rendering ground station: ${station.name}`)
 
     // Convert ECEF to J2000 (won't fail due to missing nutPar)
     const osvECEF = {
@@ -1213,9 +1213,9 @@ function drawGroundStations(matrix, nutPar, today) {
     const groundStationObj = { osvProp: osvJ2000 }
 
     const highlightColor = [0, 255, 0] // Green for ground stations
-    const satelliteScale = 0.1 // Increased visibility
+    const satelliteScale = 0.05 // Increased visibility
 
-    console.log(`Ground station ${station.name} will be drawn at:`, osvJ2000.r)
+    //console.log(`Ground station ${station.name} will be drawn at:`, osvJ2000.r)
 
     // Always render even if conversion fails
     drawSatellite(
