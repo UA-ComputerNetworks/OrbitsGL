@@ -140,6 +140,11 @@ function drawScene(time) {
   // Increment time with time warp if enabled
   if (guiControls.timeWarp) {
     dateDelta += timeControls.warpSeconds.getValue() * 1000
+  } else {
+    // if there are no files and if we need to stop the program to work for with files and no because datenow increments.
+    if (tleFiles.length == 0) {
+      dateDelta = 0
+    }
   }
 
   // Calculate "today" using base time and adjustments

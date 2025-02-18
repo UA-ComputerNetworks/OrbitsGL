@@ -137,12 +137,12 @@ function createControls() {
     this.showOsvECEF = false
     this.showIssLocation = true
     this.showIssElements = false
-    this.dateYear = initDate.getFullYear()
-    this.dateMonth = initDate.getMonth() + 1
-    this.dateDay = initDate.getDate()
-    this.timeHour = initDate.getHours()
-    this.timeMinute = initDate.getMinutes()
-    this.timeSecond = initDate.getSeconds()
+    this.dateYear = initDate.getUTCFullYear()
+    this.dateMonth = initDate.getUTCMonth() + 1
+    this.dateDay = initDate.getUTCDate()
+    this.timeHour = initDate.getUTCHours()
+    this.timeMinute = initDate.getUTCMinutes()
+    this.timeSecond = initDate.getUTCSeconds()
     this.GitHub = function () {
       window
         .open(
