@@ -106,8 +106,17 @@ function drawScene(time) {
   const enableList = guiControls.enableList
   gui.width = 400
 
-  // Compute Julian time.
-  let dateNow = new Date()
+  // Compute Julian time in UTC
+  let dateNow = new Date(
+    Date.UTC(
+      new Date().getUTCFullYear(),
+      new Date().getUTCMonth(),
+      new Date().getUTCDate(),
+      new Date().getUTCHours(),
+      new Date().getUTCMinutes(),
+      new Date().getUTCSeconds()
+    )
+  )
 
   // Calculate base time (dateNow)
   if (guiControls.enableClock) {

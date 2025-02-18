@@ -77,7 +77,16 @@ function configureTime() {}
  * Create GUI controls.
  */
 function createControls() {
-  const initDate = new Date()
+  const initDate = new Date(
+    Date.UTC(
+      new Date().getUTCFullYear(),
+      new Date().getUTCMonth(),
+      new Date().getUTCDate(),
+      new Date().getUTCHours(),
+      new Date().getUTCMinutes(),
+      new Date().getUTCSeconds()
+    )
+  )
 
   guiControls = new (function () {
     //this.preset = "Start";

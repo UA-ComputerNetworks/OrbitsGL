@@ -35,8 +35,11 @@ function parseShortestPathFile(content) {
       const satelliteNames = satelliteIds.map(
         (id) => satelliteCatalogMap[id] || id // Convert catalog numbers to names if needed
       )
+
       shortestPaths.push({
-        timestamp: new Date(timestamp), // Convert timestamp to a Date object
+        timestamp: new Date(
+          timestamp.includes('Z') ? timestamp : timestamp + 'Z'
+        ),
         satelliteIds: satelliteNames,
       })
     } else {
