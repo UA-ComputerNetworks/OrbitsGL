@@ -874,6 +874,15 @@ function checkIntersection(source, target, radius) {
   return false
 }
 
+/**
+ * Computes the Orbital State Vector (OSV) for a given satellite at a specific time.
+ * The OSV provides the satellite's position and velocity in the J2000 coordinate system.
+ *
+ * @param {Object} satellite
+ *      The satellite object containing TLE and propagation data.
+ * @param {Date} today
+ *      The timestamp for which the OSV should be computed.
+ */
 function createOsvForSatellite(satellite, today) {
   if (!satellite.satrec || !satellite.satrec.tle) {
     console.error(`Satellite ${satellite.name} is missing TLE data.`)
@@ -919,6 +928,19 @@ function createOsvForSatellite(satellite, today) {
   }
 }
 
+/**
+ * Draws the orbit of a satellite based on its Keplerian parameters.
+ * The orbit is computed by propagating the satellite position over time.
+ *
+ * @param {Date} today
+ *      The current timestamp for orbit calculation.
+ * @param {Object} satellite
+ *      The satellite object with Keplerian parameters.
+ * @param {Object} matrix
+ *      The transformation matrix for rendering.
+ * @param {Object} nutPar
+ *      Nutation parameters for coordinate transformation.
+ */
 function drawOrbit(today, satellite, matrix, nutPar) {
   if (!satellite.kepler || !satellite.kepler.ts) {
     console.warn(`No Kepler data available for satellite ${satellite.name}`)
@@ -976,6 +998,21 @@ function drawOrbit(today, satellite, matrix, nutPar) {
   lineShaders.draw(matrix)
 }
 
+/**
+ * Draws a satellite at its current position in the selected reference frame.
+ * Uses ECEF or J2000 coordinates based on user settings.
+ *
+ * @param {Object} satellite
+ *      The satellite object containing its OSV and rendering properties.
+ * @param {Object} matrix
+ *      The transformation matrix for rendering.
+ * @param {Object} nutPar
+ *      Nutation parameters for coordinate transformation.
+ * @param {Array} [customColor=null]
+ *      Optional custom color for rendering the satellite.
+ * @param {Number} [customScale=null]
+ *      Optional custom scaling factor for satellite size.
+ */
 function drawSatellite(
   satellite,
   matrix,
@@ -998,6 +1035,18 @@ function drawSatellite(
   earthShaders.draw(satMatrix, 0, 0, LST, false, false, false, color)
 }
 
+/**
+ * Draws Inter-Satellite Links (ISLs) between connected satellites.
+ * This function ensures that both satellites have propagated OSV data
+ * and then renders a connection line between them.
+ *
+ * @param {Object} matrix
+ *      The transformation matrix for rendering.
+ * @param {Object} nutPar
+ *      Nutation parameters for coordinate transformation.
+ * @param {Date} today
+ *      The current timestamp for ISL visualization.
+ */
 function drawISLLines(matrix, nutPar, today) {
   const highlightColor1 = [255, 255, 0] // Green for one end
 
@@ -1043,6 +1092,15 @@ function drawISLLines(matrix, nutPar, today) {
   })
 }
 
+/**
+ * Computes the Orbital State Vector (OSV) for a satellite participating in an ISL.
+ * This ensures that the satellite has valid positional data before drawing the link.
+ *
+ * @param {Object} satellite
+ *      The satellite object containing TLE and propagation data.
+ * @param {Date} today
+ *      The timestamp for which the OSV should be computed.
+ */
 function createOsvForISLSatellite(satellite, today) {
   if (!satellite.satrec || !satellite.satrec.tle) {
     console.error(`Satellite ${satellite.name} is missing TLE data for ISL.`)
@@ -1102,6 +1160,20 @@ function createOsvForISLSatellite(satellite, today) {
   }
 }
 
+/**
+ * Visualizes the shortest path between satellites based on precomputed route data.
+ * The function ensures each satellite in the path has an OSV and then renders
+ * connecting lines between them.
+ *
+ * @param {Object} matrix
+ *      The transformation matrix for rendering.
+ * @param {Object} nutPar
+ *      Nutation parameters for coordinate transformation.
+ * @param {Array} satelliteIds
+ *      List of satellite IDs in the shortest path sequence.
+ * @param {Date} today
+ *      The current timestamp for visualization.
+ */
 function drawShortestPath(matrix, nutPar, satelliteIds, today) {
   console.log(`Visualizing shortest path for satellites:`, satelliteIds)
   console.log(`Today:`, today)
@@ -1171,8 +1243,19 @@ function drawShortestPath(matrix, nutPar, satelliteIds, today) {
   }
 }
 
-// For groundstations.
-
+/**
+ * Converts latitude, longitude, and altitude into Earth-Centered, Earth-Fixed (ECEF) coordinates.
+ * Used for ground station positioning and visualization.
+ *
+ * @param {Number} lat
+ *      Latitude in degrees.
+ * @param {Number} lon
+ *      Longitude in degrees.
+ * @param {Number} [alt=0]
+ *      Altitude in kilometers (default is sea level).
+ * @returns {Array}
+ *      The computed ECEF coordinates [X, Y, Z].
+ */
 function latLonToECEF(lat, lon, alt = 0) {
   const R = 6371 // Earth's radius in km
   const latRad = (Math.PI / 180) * lat
@@ -1185,6 +1268,17 @@ function latLonToECEF(lat, lon, alt = 0) {
   return [X, Y, Z] // Returns ECEF coordinates
 }
 
+/**
+ * Draws ground stations at their respective locations using ECEF coordinates.
+ * Applies appropriate transformations for rendering on the visualization.
+ *
+ * @param {Object} matrix
+ *      The transformation matrix for rendering.
+ * @param {Object} nutPar
+ *      Nutation parameters for coordinate transformation.
+ * @param {Date} today
+ *      The current timestamp for visualization.
+ */
 function drawGroundStationsCustom(matrix, nutPar, today) {
   groundStations.forEach((station) => {
     const [x, y, z] = station.positionECEF // Already computed ECEF
