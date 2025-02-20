@@ -453,11 +453,9 @@ function drawScene(time) {
   // Convert to ECEF before rendering
   groundStations.forEach((station) => {
     station.positionECEF = latLonToECEF(station.lat, station.lon, station.alt)
-    //console.log(`Ground station ${station.name} ECEF:`, station.positionECEF)
   })
 
   drawGroundStationsCustom(matrix, nutPar, today)
-  //drawGroundStations(matrix, nutPar, today)
 
   drawing = false
 }
@@ -1186,6 +1184,7 @@ function latLonToECEF(lat, lon, alt = 0) {
 
   return [X, Y, Z] // Returns ECEF coordinates
 }
+
 function drawGroundStationsCustom(matrix, nutPar, today) {
   groundStations.forEach((station) => {
     const [x, y, z] = station.positionECEF // Already computed ECEF
@@ -1208,44 +1207,6 @@ function drawGroundStationsCustom(matrix, nutPar, today) {
       false,
       false,
       color
-    )
-  })
-}
-
-function drawGroundStations(matrix, nutPar, today) {
-  groundStations.forEach((station) => {
-    //console.log(`Rendering ground station: ${station.name}`)
-
-    // Convert ECEF to J2000 (won't fail due to missing nutPar)
-    const osvECEF = {
-      r: station.positionECEF,
-      v: [0, 0, 0], // Ground stations don't move
-      ts: today,
-    }
-
-    const osvJ2000 = Frames.ECEFToJ2000(osvECEF, nutPar)
-
-    if (!osvJ2000) {
-      console.error(
-        `Conversion failed for ${station.name}, but still attempting to draw.`
-      )
-      return
-    }
-
-    const groundStationObj = { osvProp: osvJ2000 }
-
-    const highlightColor = [0, 255, 0] // Green for ground stations
-    const satelliteScale = 0.05 // Increased visibility
-
-    //console.log(`Ground station ${station.name} will be drawn at:`, osvJ2000.r)
-
-    // Always render even if conversion fails
-    drawSatellite(
-      groundStationObj,
-      matrix,
-      nutPar,
-      highlightColor,
-      satelliteScale
     )
   })
 }
