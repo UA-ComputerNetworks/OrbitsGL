@@ -143,7 +143,7 @@ function drawScene(time) {
   if (guiControls.timeWarp) {
     dateDelta += timeControls.warpSeconds.getValue() * 1000
   } else {
-    if (tleFiles.length == 0) {
+    if (tleFiles.length == 0 || satellites.length == 0) {
       dateDelta = 0
     }
   }
