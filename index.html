@@ -12,55 +12,68 @@
         <canvas id="canvas"></canvas>
         <canvas id="canvasJs"></canvas>
 
-        <div id="TLEcontainer">
-            <label for="TLEinput">Paste 3-line TLE below:</label><br>
-            <a href="https://celestrak.com/NORAD/elements/" target="_blank"> See CelesTrak for available TLEs.</a>
-            <textarea id="TLEinput" rows="3" cols="69"></textarea>
-            <button id="TLEEnter">Enter</button>
-            <button id="TLECancel">Cancel</button>
-        </div>
-        <div id="TLEListcontainer">
+        <div id="TLEListcontainer" style="visibility: hidden;">
             <label for="TLEListinput">Paste a list of 3-line TLEs below:</label><br>
-            <a href="https://celestrak.com/NORAD/elements/" target="_blank"> See CelesTrak for available TLEs.</a>
             <textarea id="TLEListinput" rows="10" cols="69"></textarea>
-
-            <!-- Adding file input -->
-            <label for="TLEFileInput">Or select a file with TLE data:</label><br>
-            <input type="file" id="TLEFileInput"><br>
-
+            <label for="TLEFileInput">Or select TLE files:</label><br>
+            <input type="file" id="TLEFileInput" multiple accept=".txt">
             <button id="TLEListEnter">Enter</button>
             <button id="TLEListCancel">Cancel</button>
-        </div>
+         </div>
 
-        <div id="TLESelectcontainer">
-            <!-- <label for="TLESelectinput">Select TLE from the list of satellites below:</label>
-            <br>
-            <select id="TLESelectlist" size="0">
-            </select>
-            <button id="TLESelectEnter">Select</button>
-            <button id="TLESelectCancel">Cancel</button> -->
+        
 
-            <!-- File input to upload satellite data (name and color) -->
-            <input type="file" id="SatelliteFileInput" accept=".txt">
-            <!-- Select list for satellite names with multi-selection enabled -->
+        <!-- <div id="TLESelectcontainer">
+            <h3>Satellite Selection</h3>
+            <!-- File input for satellite names -->
+            <label for="SatelliteFileInputByName">Upload Satellite Data (Name):</label>
+            <input type="file" id="SatelliteFileInputByName" accept=".txt">
+            <br><br>
+
+            <!-- File input for catalog numbers -->
+            <label for="SatelliteFileInputByCatalog">Upload Satellite Data (Catalog Number):</label>
+            <input type="file" id="SatelliteFileInputByCatalog" accept=".txt">
+            <br><br>
+
+            <!-- Select list for satellite names or catalog numbers -->
             <select id="TLESelectlist" multiple size="10"></select>
+            <br><br>
+
             <!-- Buttons for entering and canceling selection -->
             <button id="TLESelectEnter">Enter</button>
             <button id="TLESelectCancel">Cancel</button>
+        </div> -->
 
-            
-            
+
+            <!-- Container for Select TLE Section -->
+        <div id="SelectTLEUploadContainer">
+        <h3>Select TLE</h3>
+
+        <!-- Upload TLE File by Satellite Name -->
+        <label for="SelectTLEFileInputByName">Select TLE File by Satellite Name:</label><br>
+        <input type="file" id="SelectTLEFileInputByName" accept=".txt"><br><br>
+
+        <!-- Upload TLE File by Catalog Number -->
+        <label for="SelectTLEFileInputByCatalog">Select TLE File by Catalog Number:</label><br>
+        <input type="file" id="SelectTLEFileInputByCatalog" accept=".txt"><br><br>
         </div>
-        
+                        
 
             <!-- Container for ISL Upload Section -->
         <div id="ISLUploadContainer">
             <h3>Inter-Satellite Link (ISL) Upload</h3>
-            <label for="ISLFileInput">Upload ISL File (Satellite Links):</label><br>
-            <input type="file" id="ISLFileInput" accept=".txt" onchange="handleISLFileUpload(event)"><br><br>
 
-            <label for="ISLStyleFileInput">Upload ISL Style File (Optional):</label><br>
-            <input type="file" id="ISLStyleFileInput" accept=".txt" onchange="handleISLStyleFileUpload(event)"><br><br>
+            <!-- Upload ISL File by Satellite Name -->
+            <label for="ISLFileInputByName">Upload ISL File by Satellite Name:</label><br>
+            <input type="file" id="ISLFileInputByName" accept=".txt"><br><br>
+
+            <!-- Upload ISL File by Catalog Number -->
+            <label for="ISLFileInputByCatalog">Upload ISL File by Catalog Number:</label><br>
+            <input type="file" id="ISLFileInputByCatalog" accept=".txt"><br><br>
+
+            <!-- Upload ISL Style File -->
+            <label for="ISLStyleFileInputByName">Upload ISL Style File (Optional):</label><br>
+            <input type="file" id="ISLStyleFileInputByName" accept=".txt"><br><br>
         </div>
 
                 <!-- Container for TLE Upload Section -->
@@ -70,6 +83,13 @@
             <input type="file" id="TLEMultipleFileInput" multiple accept=".txt,.tle">
             <button id="processTLEFilesButton">Process TLE Files</button>
         </div>
+
+        <!-- Shortest Path Visualization Upload Section -->
+        <div id="ShortestPathContainer">
+        <h3>Shortest Path Visualization</h3>
+
+        <!-- Shortest Path File Upload -->
+        <input type="file" id="ShortestPathFileInput" accept=".txt" style="display: none;" />
 
 
     </div>
@@ -110,7 +130,10 @@
     <script src="shaders/PlanetShaders.js"></script>
     <script src="app.js"></script>
         <!-- Link to ISL Upload JavaScript -->
-    <script src="GUI/islUpload.js"></script>
+   
+    <script src="GUI/islUpload.js"></script> -->
+
     <script src="GUI/tleUpload.js"></script>
+    <script src="GUI/ShortestPathFile.js"></script>
     </body>
 </html>

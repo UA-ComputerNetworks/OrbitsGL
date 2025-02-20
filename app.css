@@ -209,10 +209,11 @@ a:visited {
   z-index: 3;
 }
 
+#TLEListcontainer,
+#TLEUploadContainer,
 #ISLUploadContainer {
   z-index: 11;
   opacity: 0.8;
-  padding-top: 10px;
   position: absolute;
   left: 0;
   right: 0;
@@ -220,5 +221,5 @@ a:visited {
   margin-right: auto;
   width: 500px;
   top: 40%;
-  visibility: hidden;
+  visibility: hidden; /* Ensure containers are hidden by default */
 }

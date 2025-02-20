@@ -5,6 +5,14 @@ var earthShaders = null
 var lineShaders = null
 var pointShaders = null
 
+const groundStations = [
+  { name: 'Los Angeles, CA', lat: 34.0522, lon: -118.2437, alt: 0 },
+  { name: 'Redmond, WA (Starlink HQ)', lat: 47.6731, lon: -122.1185, alt: 0 },
+  { name: 'Hawthorne, CA (SpaceX HQ)', lat: 33.9206, lon: -118.3272, alt: 0 },
+  { name: 'Boca Chica, TX', lat: 26.014, lon: -97.1562, alt: 0 },
+  { name: 'Orlando, FL', lat: 28.5383, lon: -81.3792, alt: 0 },
+]
+
 // SGP4 test:
 var tleLine1 =
     '1 25544U 98067A   21356.70730882  .00006423  00000+0  12443-3 0  9993',
@@ -73,6 +81,7 @@ var selectedSatellites = [] // Assuming this is populated from SelectDialog.
 let satelliteObjects = []
 
 var firstSatelliteEpoch = null // for the epoch time.
+let currentFileIndex = 0
 
 requestAnimationFrame(drawScene)
 
@@ -95,37 +104,60 @@ function drawScene(time) {
 
   // Avoid change to the list during the execution of the method.
   const enableList = guiControls.enableList
+  gui.width = 350
 
   // Compute Julian time.
-  let dateNow = new Date()
+  let dateNow = new Date(
+    Date.UTC(
+      new Date().getUTCFullYear(),
+      new Date().getUTCMonth(),
+      new Date().getUTCDate(),
+      new Date().getUTCHours(),
+      new Date().getUTCMinutes(),
+      new Date().getUTCSeconds()
+    )
+  )
 
   // Calculate base time (dateNow)
   if (guiControls.enableClock) {
-    // Use current system time if "Enable Clock" is ON
-    dateNow = new Date()
+    // Use current system time in UTC if "Enable Clock" is ON
+    dateNow = dateNow
   } else if (satellites.length > 0 && firstSatelliteEpoch) {
-    // Use epoch time of the first satellite if available
-    dateNow = new Date(firstSatelliteEpoch)
+    // Use epoch time of the first satellite (Make sure it's stored in UTC)
+    dateNow = new Date(firstSatelliteEpoch.getTime())
   } else {
-    // Fallback to manual time from GUI if no epoch is available
+    // Fallback to manual time from GUI (Ensure it remains UTC)
     dateNow = new Date(
-      guiControls.dateYear,
-      parseInt(guiControls.dateMonth) - 1,
-      guiControls.dateDay,
-      guiControls.timeHour,
-      guiControls.timeMinute,
-      guiControls.timeSecond
+      Date.UTC(
+        guiControls.dateYear,
+        parseInt(guiControls.dateMonth) - 1,
+        guiControls.dateDay,
+        guiControls.timeHour,
+        guiControls.timeMinute,
+        guiControls.timeSecond
+      )
     )
   }
 
   // Increment time with time warp if enabled
   if (guiControls.timeWarp) {
     dateDelta += timeControls.warpSeconds.getValue() * 1000
+  } else {
+    if (tleFiles.length == 0 || satellites.length == 0) {
+      dateDelta = 0
+    }
   }
 
   // Calculate "today" using base time and adjustments
   today = new Date(
-    dateNow.getTime() +
+    Date.UTC(
+      dateNow.getUTCFullYear(),
+      dateNow.getUTCMonth(),
+      dateNow.getUTCDate(),
+      dateNow.getUTCHours(),
+      dateNow.getUTCMinutes(),
+      dateNow.getUTCSeconds()
+    ) +
       24 * 3600 * 1000 * guiControls.deltaDays +
       3600 * 1000 * guiControls.deltaHours +
       60 * 1000 * guiControls.deltaMins +
@@ -134,21 +166,14 @@ function drawScene(time) {
   )
 
   // Update GUI time display to reflect "today" (without triggering configureTime)
-  timeControls.yearControl.setValue(today.getFullYear(), false)
-  timeControls.monthControl.setValue(today.getMonth() + 1, false)
-  timeControls.dayControl.setValue(today.getDate(), false)
-  timeControls.hourControl.setValue(today.getHours(), false)
-  timeControls.minuteControl.setValue(today.getMinutes(), false)
-  timeControls.secondControl.setValue(today.getSeconds(), false)
+  timeControls.yearControl.setValue(today.getUTCFullYear(), false)
+  timeControls.monthControl.setValue(today.getUTCMonth() + 1, false)
+  timeControls.dayControl.setValue(today.getUTCDate(), false)
+  timeControls.hourControl.setValue(today.getUTCHours(), false)
+  timeControls.minuteControl.setValue(today.getUTCMinutes(), false)
+  timeControls.secondControl.setValue(today.getUTCSeconds(), false)
 
-  // // Handle "time warp" independently
-  // if (guiControls.timeWarp) {
-  //   dateDelta += guiControls.warpSeconds * 1000
-  // }
-
-  // if (satellites.length > 0) {
-  //   today = firstSatelliteEpoch
-  // }
+  checkAndSwitchFiles()
 
   // Use latest telemetry only if enabled. Then, the telemetry set from the UI controls is not
   // overwritten below.
@@ -158,7 +183,6 @@ function drawScene(time) {
   if (enableList) {
     for (let indSat = 0; indSat < satellites.length; indSat++) {
       const sat = satellites[indSat]
-      //const positionAndVelocity = satellite.propagate(sat, today);
 
       // Propagate list items only once every 10 seconds to avoid CPU load.
       let osvTeme
@@ -174,7 +198,6 @@ function drawScene(time) {
       const velEci = osvTeme.v
 
       if (typeof posEci !== 'undefined') {
-        //console.log(posEci);
         let osvSat = {
           r: [
             osvTeme.r[0] * 1000.0,
@@ -348,7 +371,7 @@ function drawScene(time) {
   const matrix = createViewMatrix()
   drawEarth(matrix, rASun, declSun, LST, JT, nutPar)
 
-  // Draw selected satellites
+  // Draw selected satellites selected from Select TLE.
   selectedSatellites.forEach((satellite) => {
     createOsvForSatellite(satellite, today)
     if (guiControls.enableOrbit) {
@@ -357,15 +380,6 @@ function drawScene(time) {
 
     drawSatellite(satellite, matrix, nutPar)
   })
-
-  // // Render each satellite
-  // osvSatListTeme.forEach((sat) => {
-  //   drawSatellite(sat, matrix, nutPar)
-  // })
-
-  // if (guiControls.enableOrbit) {
-  //   drawOrbit(today, matrix, kepler_updated, nutPar)
-  // }
 
   let rotMatrixTeme
   if (enableList) {
@@ -432,6 +446,16 @@ function drawScene(time) {
   requestAnimationFrame(drawScene)
 
   drawISLLines(matrix, nutPar, today)
+  visualizeShortestPaths(matrix, nutPar, today)
+
+  // For groundStations visualisation.
+
+  // Convert to ECEF before rendering
+  groundStations.forEach((station) => {
+    station.positionECEF = latLonToECEF(station.lat, station.lon, station.alt)
+  })
+
+  drawGroundStationsCustom(matrix, nutPar, today)
 
   drawing = false
 }
@@ -691,87 +715,6 @@ function drawEarth(matrix, rASun, declSun, LST, JT, nutPar) {
   )
 }
 
-// /**
-//  * Draw orbit.
-//  *
-//  * @param {*} today
-//  *      Date.
-//  * @param {*} matrix
-//  *      View matrix.
-//  * @param {*} kepler_updated
-//  *      Kepler parameters
-//  * @param {*} JD
-//  *      Julian date.
-//  */
-// function drawOrbit(today, matrix, kepler_updated, nutPar) {
-//   let p = []
-//   const period = Kepler.computePeriod(kepler_updated.a, kepler_updated.mu)
-
-//   // Division by 100.0 leads to numerical issues.
-//   const jdStep = period / (guiControls.orbitPoints + 0.01)
-
-//   for (
-//     let jdDelta = -period * guiControls.orbitsBefore;
-//     jdDelta <= period * guiControls.orbitsAfter;
-//     jdDelta += jdStep
-//   ) {
-//     const deltaDate = new Date(today.getTime() + 1000 * jdDelta)
-
-//     let x = 0
-//     let y = 0
-//     let z = 0
-//     if (guiControls.source === 'TLE') {
-//       const osvTeme = sgp4.propagateTargetTs(satrec, deltaDate, 0.0)
-//       const osvJ2000 = sgp4.coordTemeJ2000(osvTeme, nutPar)
-//       const posEci = osvJ2000.r
-//       const velEci = osvJ2000.v
-//       const osvPropJ2000 = {
-//         r: [posEci[0] * 1000.0, posEci[1] * 1000.0, posEci[2] * 1000.0],
-//         v: [velEci[0], velEci[1], velEci[2]],
-//         ts: deltaDate,
-//       }
-
-//       if (guiControls.frame === 'ECEF') {
-//         const osvEcef = Frames.osvJ2000ToECEF(osvPropJ2000, nutPar)
-//         ;[x, y, z] = MathUtils.vecmul(osvEcef.r, 0.001)
-//       } else if (guiControls.frame === 'J2000') {
-//         ;[x, y, z] = [posEci[0], posEci[1], posEci[2]]
-//       }
-//     } else {
-//       const osvProp = Kepler.propagate(kepler_updated, deltaDate)
-
-//       if (guiControls.frame === 'ECEF') {
-//         const osv_ECEF = Frames.osvJ2000ToECEF(osvProp, nutPar)
-//         ;[x, y, z] = MathUtils.vecmul(osv_ECEF.r, 0.001)
-//       } else if (guiControls.frame === 'J2000') {
-//         ;[x, y, z] = MathUtils.vecmul(osvProp.r, 0.001)
-//       }
-//     }
-
-//     p.push([x, y, z])
-//     if (p.length != 1) {
-//       p.push([x, y, z])
-//     }
-//   }
-//   p.push(p[p.length - 1])
-//   if (guiControls.frame === 'ECEF') {
-//     ;[ISS.x, ISS.y, ISS.z] = MathUtils.vecmul(ISS.r_ECEF, 0.001)
-//   } else if (guiControls.frame === 'J2000') {
-//     ;[ISS.x, ISS.y, ISS.z] = MathUtils.vecmul(ISS.r_J2000, 0.001)
-//   }
-//   p.push([ISS.x, ISS.y, ISS.z])
-//   p.push([0, 0, 0])
-
-//   lineShaders.setGeometry(p)
-//   lineShaders.draw(matrix)
-
-//   // The satellite is replaced with a smaller sphere without textures, map nor grid.
-//   let issMatrix = m4.translate(matrix, ISS.x, ISS.y, ISS.z)
-//   const factor = 0.01 * guiControls.satelliteScale
-//   issMatrix = m4.scale(issMatrix, factor, factor, factor)
-//   earthShaders.draw(issMatrix, 0, 0, LST, false, false, false, null)
-// }
-
 /**
  * Draw Sun.
  *
@@ -931,24 +874,6 @@ function checkIntersection(source, target, radius) {
   return false
 }
 
-// function drawSatellite(sat, matrix, nutPar) {
-//   const osv_ECEF = Frames.osvJ2000ToECEF(sat, nutPar)
-
-//   // Define drawing positions
-//   const [x, y, z] = MathUtils.vecmul(osv_ECEF.r, 0.001) // Convert to kilometers for display
-
-//   // Draw orbit path if enabled
-//   if (guiControls.enableOrbit) {
-//     drawOrbit(sat, matrix, nutPar)
-//   }
-
-//   // Draw satellite marker with color
-//   let satMatrix = m4.translate(matrix, x, y, z)
-//   const factor = 0.01 * guiControls.satelliteScale
-//   satMatrix = m4.scale(satMatrix, factor, factor, factor)
-//   earthShaders.draw(satMatrix, 0, 0, LST, false, false, false, sat.color)
-// }
-
 function createOsvForSatellite(satellite, today) {
   if (!satellite.satrec || !satellite.satrec.tle) {
     console.error(`Satellite ${satellite.name} is missing TLE data.`)
@@ -982,7 +907,6 @@ function createOsvForSatellite(satellite, today) {
       satellite.osvProp.v,
       satellite.osvProp.ts
     )
-    //keplerParams.ecc_norm = Math.min(keplerParams.ecc_norm, 0.999) // Clamp eccentricity to avoid instability
 
     satellite.kepler = keplerParams
 
@@ -995,28 +919,6 @@ function createOsvForSatellite(satellite, today) {
   }
 }
 
-// function createOsvForSatellite(satellite, today) {
-//   if (guiControls.source === 'TLE') {
-//     const osvTeme = sgp4.propagateTargetTs(satellite.satRec, today, 0.0)
-//     const osvJ2000 = sgp4.coordTemeJ2000(osvTeme)
-//     satellite.osvProp = {
-//       r: [
-//         osvJ2000.r[0] * 1000.0,
-//         osvJ2000.r[1] * 1000.0,
-//         osvJ2000.r[2] * 1000.0,
-//       ],
-//       v: [
-//         osvJ2000.v[0] * 1000.0,
-//         osvJ2000.v[1] * 1000.0,
-//         osvJ2000.v[2] * 1000.0,
-//       ],
-//       ts: today,
-//     }
-//   } else {
-//     // Apply custom propagation if not using TLE (e.g., Kepler)
-//     satellite.osvProp = Kepler.propagate(satellite.kepler, today)
-//   }
-// }
 function drawOrbit(today, satellite, matrix, nutPar) {
   if (!satellite.kepler || !satellite.kepler.ts) {
     console.warn(`No Kepler data available for satellite ${satellite.name}`)
@@ -1198,4 +1100,113 @@ function createOsvForISLSatellite(satellite, today) {
       error
     )
   }
+}
+
+function drawShortestPath(matrix, nutPar, satelliteIds, today) {
+  console.log(`Visualizing shortest path for satellites:`, satelliteIds)
+  console.log(`Today:`, today)
+
+  const highlightColor1 = [255, 255, 0] // Green for one end
+  const satelliteScale = 0.01 // Scale to avoid oversized satellites
+  const lineThickness = 3.0 // Adjust line thickness
+
+  for (let i = 0; i < satelliteIds.length - 1; i++) {
+    const sat1Name = satelliteIds[i] // Treat IDs as names
+    const sat2Name = satelliteIds[i + 1]
+
+    console.log(`Processing path segment between ${sat1Name} and ${sat2Name}`)
+
+    const sat1 = satelliteObjects[sat1Name] // Get satellite by name
+    const sat2 = satelliteObjects[sat2Name]
+
+    if (!sat1) {
+      console.warn(`Satellite ${sat1Name} not found in satelliteObjects`)
+    } else {
+      console.log(`Satellite ${sat1Name} found. OSV:`, sat1.osvProp)
+    }
+
+    if (!sat2) {
+      console.warn(`Satellite ${sat2Name} not found in satelliteObjects`)
+    } else {
+      console.log(`Satellite ${sat2Name} found. OSV:`, sat2.osvProp)
+    }
+
+    createOsvForISLSatellite(sat1, today)
+    createOsvForISLSatellite(sat2, today)
+
+    if (sat1 && sat2 && sat1.osvProp && sat2.osvProp) {
+      console.log(`Both satellites have OSVs. Drawing segment.`)
+      drawSatellite(sat1, matrix, nutPar, highlightColor1, satelliteScale)
+      drawSatellite(sat2, matrix, nutPar, highlightColor1, satelliteScale)
+
+      const osv1 = Frames.osvJ2000ToECEF(sat1.osvProp, nutPar)
+      const osv2 = Frames.osvJ2000ToECEF(sat2.osvProp, nutPar)
+
+      console.log(`Converted OSVs to ECEF for ${sat1Name} and ${sat2Name}:`, {
+        osv1,
+        osv2,
+      })
+
+      const [x1, y1, z1] = MathUtils.vecmul(osv1.r, 0.001)
+      const [x2, y2, z2] = MathUtils.vecmul(osv2.r, 0.001)
+
+      const linePoints = [
+        [x1, y1, z1],
+        [x2, y2, z2],
+      ]
+
+      const color = [0, 255, 0] // Green for shortest paths
+      lineShaders.setStyle(5, 'solid') // Set line style and thickness
+      lineShaders.setGeometry(linePoints, color)
+      lineShaders.draw(matrix)
+
+      console.log(
+        `Successfully drew path segment between ${sat1Name} and ${sat2Name}`
+      )
+    } else {
+      console.warn(
+        `Path not drawn: Missing propagated data for ${sat1Name} or ${sat2Name}`
+      )
+    }
+  }
+}
+
+// For groundstations.
+
+function latLonToECEF(lat, lon, alt = 0) {
+  const R = 6371 // Earth's radius in km
+  const latRad = (Math.PI / 180) * lat
+  const lonRad = (Math.PI / 180) * lon
+
+  const X = (R + alt) * Math.cos(latRad) * Math.cos(lonRad)
+  const Y = (R + alt) * Math.cos(latRad) * Math.sin(lonRad)
+  const Z = (R + alt) * Math.sin(latRad)
+
+  return [X, Y, Z] // Returns ECEF coordinates
+}
+
+function drawGroundStationsCustom(matrix, nutPar, today) {
+  groundStations.forEach((station) => {
+    const [x, y, z] = station.positionECEF // Already computed ECEF
+
+    //console.log(`Drawing ground station ${station.name} at (${x}, ${y}, ${z})`)
+
+    // Scale the ground station markers appropriately
+    let groundStationMatrix = m4.translate(matrix, x, y, z)
+    groundStationMatrix = m4.scale(groundStationMatrix, 0.01, 0.01, 0.01) // Adjust size
+
+    // Use `earthShaders` to draw the ground station
+    const color = [0, 255, 0] // Green for visibility
+    earthShaders.setSatelliteColor(color[0], color[1], color[2])
+    earthShaders.draw(
+      groundStationMatrix,
+      0,
+      0,
+      LST,
+      false,
+      false,
+      false,
+      color
+    )
+  })
 }

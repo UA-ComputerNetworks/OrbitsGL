@@ -1,20 +1,92 @@
-// DatGUI controls.
+// ================================
+// Global Variables for GUI Controls
+// ================================
+
+/**
+ * Central object to manage all GUI functionalities.
+ * Serves as the parent control for all GUI-related subgroups.
+ */
 var guiControls = null
 
-// Hold OSV controls.
+/**
+ * OSV Controls:
+ * - Manages Orbit State Vector (OSV) visualization and real-time data.
+ * - Examples:
+ *    - Visualizing satellite positions and vectors.
+ *    - Displaying orbit paths.
+ */
 var osvControls = {}
+
+/**
+ * Display Controls:
+ * - Handles visual components and toggles for GUI elements.
+ * - Examples:
+ *    - Enabling/disabling grid lines.
+ *    - Toggling visibility of satellite paths.
+ */
 var displayControls = {}
+
+/**
+ * TLE Controls:
+ * - Provides functionalities to upload, manage, and visualize TLE files.
+ * - Examples:
+ *    - Uploading TLE files by satellite name or catalog number.
+ *    - Selecting satellites dynamically for operations.
+ */
 var tleControls = {}
+
+/**
+ * Time Controls:
+ * - Controls the simulation time and timewarp functionality.
+ * - Examples:
+ *    - Pausing or resuming the simulation.
+ *    - Adjusting timewarp for faster or slower progression.
+ */
 var timeControls = {}
+
+/**
+ * Camera Controls:
+ * - Manages the camera’s behavior, including movement and focus.
+ * - Examples:
+ *    - Centering on a specific satellite.
+ *    - Rotating the view dynamically.
+ */
 var cameraControls = {}
+
+/**
+ * Frame Controls:
+ * - Handles the reference frame for the visualization.
+ * - Examples:
+ *    - Switching between Earth-centered (ECEF) and inertial frames.
+ *    - Changing coordinate systems.
+ */
 var frameControls = {}
+
+/**
+ * Kepler Controls:
+ * - Displays Keplerian orbital parameters for selected satellites.
+ * - Examples:
+ *    - Showing semi-major axis, inclination, and eccentricity.
+ *    - Visualizing real-time changes in orbital elements.
+ */
 var keplerControls = {}
+
+function configureTime() {}
 
 /**
  * Create GUI controls.
  */
 function createControls() {
-  const initDate = new Date()
+  const initDate = new Date(
+    Date.UTC(
+      new Date().getUTCFullYear(),
+      new Date().getUTCMonth(),
+      new Date().getUTCDate(),
+      new Date().getUTCHours(),
+      new Date().getUTCMinutes(),
+      new Date().getUTCSeconds()
+    )
+  )
 
   guiControls = new (function () {
     //this.preset = "Start";
@@ -65,12 +137,12 @@ function createControls() {
     this.showOsvECEF = false
     this.showIssLocation = true
     this.showIssElements = false
-    this.dateYear = initDate.getFullYear()
-    this.dateMonth = initDate.getMonth() + 1
-    this.dateDay = initDate.getDate()
-    this.timeHour = initDate.getHours()
-    this.timeMinute = initDate.getMinutes()
-    this.timeSecond = initDate.getSeconds()
+    this.dateYear = initDate.getUTCFullYear()
+    this.dateMonth = initDate.getUTCMonth() + 1
+    this.dateDay = initDate.getUTCDate()
+    this.timeHour = initDate.getUTCHours()
+    this.timeMinute = initDate.getUTCMinutes()
+    this.timeSecond = initDate.getUTCSeconds()
     this.GitHub = function () {
       window
         .open(
@@ -79,7 +151,7 @@ function createControls() {
         )
         .focus()
     }
-    this.warpSeconds = 60
+    this.warpSeconds = 1
     this.timeWarp = false
     this.lockLonRot = false
     this.lockLatRot = false
@@ -95,7 +167,7 @@ function createControls() {
     this.frame = 'ECEF'
 
     this.source = 'Telemetry'
-    this.enableClock = true
+    this.enableClock = false
     this.targetName = 'ISS (ZARYA)'
     this.osvYear = 2021
     this.osvMonth = 11
@@ -179,19 +251,13 @@ function createControls() {
       }
     }
 
-    // Initialize TLE from a string.
-    this.insertTLE = function () {
-      const TLEcontainer = document.getElementById('TLEcontainer')
-      TLEcontainer.style.visibility = 'visible'
-      const TLEinput = document.getElementById('TLEinput')
-      TLEinput.focus()
-    }
-
-    // Select TLE from a list.
-    this.selectTLE = function () {
-      const SelectContainer = document.getElementById('TLESelectcontainer')
-      SelectContainer.style.visibility = 'visible'
-    }
+    // // Initialize TLE from a string.
+    // this.insertTLE = function () {
+    //   const TLEcontainer = document.getElementById('TLEcontainer')
+    //   TLEcontainer.style.visibility = 'visible'
+    //   const TLEinput = document.getElementById('TLEinput')
+    //   TLEinput.focus()
+    // }
 
     // Initialize TLE from a string.
     this.insertList = function () {
@@ -227,75 +293,61 @@ function createControls() {
     }
   })()
 
-  /**
-   * Configure time.
-   */
-  // function configureTime() {
-  //   if (!guiControls.enableClock) {
-  //     const newDate = new Date(
-  //       guiControls.dateYear,
-  //       parseInt(guiControls.dateMonth) - 1,
-  //       guiControls.dateDay,
-  //       guiControls.timeHour,
-  //       guiControls.timeMinute,
-  //       guiControls.timeSecond
-  //     ).getTime()
-
-  //     const today = new Date().getTime()
-  //     dateDelta = newDate - today
-  //   }
-  // }
-
-  function configureTime() {
-    // if (guiControls.enableClock) {
-    //   // Reset dateDelta to 0 when using system time
-    //   //dateDelta = 0
-    //   console.log('triggered\n')
-    // } else if (satellites.length > 0 && firstSatelliteEpoch) {
-    //   // Set dateDelta based on satellite epoch time
-    //   const epochTime = new Date(firstSatelliteEpoch).getTime()
-    //   const systemTime = new Date().getTime()
-    //   dateDelta = epochTime - systemTime // Calculate offset
-    // } else {
-    //   // Set dateDelta based on manual GUI time
-    //   const manualTime = new Date(
-    //     guiControls.dateYear,
-    //     parseInt(guiControls.dateMonth) - 1,
-    //     guiControls.dateDay,
-    //     guiControls.timeHour,
-    //     guiControls.timeMinute,
-    //     guiControls.timeSecond
-    //   ).getTime()
-    //   const systemTime = new Date().getTime()
-    //   dateDelta = manualTime - systemTime // Calculate offset
-    // }
-  }
-
-  gui = new dat.GUI({ width: 300 }) // Adjust the width as needed
+  gui = new dat.GUI({ width: 250 }) // Adjust the width as needed
 
   osvControls.targetName = gui
     .add(guiControls, 'targetName')
     .name('Target Name')
-  //osvControls.insertTLE = gui.add(guiControls, 'insertTLE').name('Insert TLE')
+
   osvControls.insertList = gui
     .add(guiControls, 'insertList')
     .name('Insert TLE List')
-  osvControls.selectTLE = gui.add(guiControls, 'selectTLE').name('Select TLE')
+
+  // Select TLE controls.
+
+  // Adding "Select TLE" options to GUI
+  guiControls.selectTLEByName = function () {
+    console.log('Select TLE by Name triggered')
+    document.getElementById('SelectTLEFileInputByName').click()
+  }
+
+  guiControls.selectTLEByCatalog = function () {
+    console.log('Select TLE by Catalog triggered')
+    document.getElementById('SelectTLEFileInputByCatalog').click()
+  }
+
+  // Add Select TLE Folder to GUI
+  const tleFolder2 = gui.addFolder('Select TLE')
+  tleFolder2.add(guiControls, 'selectTLEByName').name('Select TLE by Name')
+  tleFolder2
+    .add(guiControls, 'selectTLEByCatalog')
+    .name('Select TLE by Catalog Number')
 
   // Moving ISL features to the top.
 
   // Define upload functions in guiControls
-  guiControls.uploadISLFile = function () {
-    document.getElementById('ISLFileInput').click() // Trigger hidden ISL file input
+
+  guiControls.uploadISLFileByName = function () {
+    document.getElementById('ISLFileInputByName').click() // Trigger ISL upload by name
+  }
+
+  guiControls.uploadISLFileByCatalog = function () {
+    document.getElementById('ISLFileInputByCatalog').click() // Trigger ISL upload by catalog number
   }
 
   guiControls.uploadISLStyleFile = function () {
-    document.getElementById('ISLStyleFileInput').click() // Trigger hidden style file input
+    document.getElementById('ISLStyleFileInputByName').click() // Trigger hidden style file input
   }
 
   // Add an "Inter-Satellite Links" folder to GUI
+  // Add ISL upload options
   const islFolder = gui.addFolder('Inter-Satellite Links')
-  islFolder.add(guiControls, 'uploadISLFile').name('Upload ISL File')
+  islFolder
+    .add(guiControls, 'uploadISLFileByName')
+    .name('Upload ISL by SatName')
+  islFolder
+    .add(guiControls, 'uploadISLFileByCatalog')
+    .name('Upload ISL by Catalog Number')
   islFolder.add(guiControls, 'uploadISLStyleFile').name('Upload ISL Style File')
 
   osvControls.source = gui
@@ -398,7 +450,6 @@ function createControls() {
     })
 
   const cameraFolder = gui.addFolder('Camera')
-  //displayFolder.add(guiControls, 'enableLocation');
   cameraControls.frame = cameraFolder
     .add(guiControls, 'frame', ['ECEF', 'J2000'])
     .name('Frame')
@@ -680,4 +731,17 @@ function createControls() {
 
   osvControls.insertOSV = gui.add(guiControls, 'insertOSV').name('Insert OSV')
   osvControls.exportOSV = gui.add(guiControls, 'exportOSV').name('Export OSV')
+
+  // Add Shortest Path Visualization folder
+  const shortestPathFolder = gui.addFolder('Shortest Path Visualization')
+
+  // Add GUI controls for file upload
+  guiControls.uploadShortestPathFile = function () {
+    document.getElementById('ShortestPathFileInput').click() // Trigger file upload directly
+  }
+
+  // Add options to the GUI
+  shortestPathFolder
+    .add(guiControls, 'uploadShortestPathFile')
+    .name('Upload Shortest Path File')
 }
