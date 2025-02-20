@@ -11,6 +11,7 @@ This document provides detailed steps for testing all major functionalities of t
 - Allows the user to upload TLE files and visualize satellites.
 - Satellites can be selected by **Name** or **Catalog Number** for additional operations.
 - File names and colors are used for visual differentiation.
+- By default, the simulation starts at the **epoch time** of the first satellite in the uploaded **TLE file**.
 
 ### Steps:
 
@@ -50,6 +51,7 @@ This document provides detailed steps for testing all major functionalities of t
 - Enables visualization of links between satellites based on provided files.
 - Supports files specifying ISLs by **Name** or **Catalog Number**.
 - Optional styles for ISLs can include color, width, and line type.
+- By default, the simulation starts at the **epoch time** of the first satellite in the uploaded **TLE file**.
 
 ### Steps:
 
@@ -81,6 +83,7 @@ This document provides detailed steps for testing all major functionalities of t
 
 - Supports uploading multiple TLE files for satellites.
 - Files are sorted by **epoch time** and dynamically switched during the simulation based on the current time.
+- By default, the simulation starts at the **epoch time** of the first satellite in the uploaded **TLE file**.
 
 ### Steps:
 
