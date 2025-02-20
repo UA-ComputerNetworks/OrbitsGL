@@ -223,16 +223,3 @@ a:visited {
   top: 40%;
   visibility: hidden; /* Ensure containers are hidden by default */
 }
-
-/* #SelectTLEUploadContainer {
-  z-index: 11;
-  opacity: 0.8;
-  position: absolute;
-  left: 0;
-  right: 0;
-  margin-left: auto;
-  margin-right: auto;
-  width: 500px;
-  top: 40%;
-  visibility: hidden; /* Ensure containers are hidden by default */
-} */

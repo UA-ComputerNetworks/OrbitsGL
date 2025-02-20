@@ -293,7 +293,7 @@ function createControls() {
     }
   })()
 
-  gui = new dat.GUI({ width: 300 }) // Adjust the width as needed
+  gui = new dat.GUI({ width: 200 }) // Adjust the width as needed
 
   osvControls.targetName = gui
     .add(guiControls, 'targetName')

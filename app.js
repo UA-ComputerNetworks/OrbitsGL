@@ -104,7 +104,7 @@ function drawScene(time) {
 
   // Avoid change to the list during the execution of the method.
   const enableList = guiControls.enableList
-  gui.width = 400
+  gui.width = 300
 
   // Compute Julian time.
   let dateNow = new Date(
