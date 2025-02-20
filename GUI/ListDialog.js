@@ -21,7 +21,7 @@ const TLEFileInput = document.getElementById('TLEFileInput')
  * `satelliteCatalogMap` - Maps catalog numbers to satellite names.
  * `tleFiles` - Stores uploaded TLE files along with their content and timestamps.
  */
-const satelliteCatalogMap = {}
+let satelliteCatalogMap = {}
 let tleFiles = [] // Array to store uploaded TLE files and their data
 
 /**
@@ -70,6 +70,12 @@ TLEFileInput.onchange = function (event) {
 
   console.log(`Processing ${files.length} file(s)...`)
   tleFiles = [] // Clear previous file data
+  satelliteCatalogMap = {}
+  satellites = []
+  satelliteNames = []
+  satNameToIndex = []
+  satIndexToName = []
+  satelliteObjects = {}
 
   // Clear textarea and list uploaded filenames
   TLEinput.value = '' // Clear previous content
@@ -133,6 +139,7 @@ function processTLEFile(content, filename) {
   satNameToIndex = []
   satIndexToName = []
   satelliteObjects = {}
+  satelliteCatalogMap = {}
 
   for (let indElem = 0; indElem < numElem; indElem++) {
     let title = lines[indElem * 3].trim()
