@@ -109,7 +109,81 @@ This document provides detailed steps for testing all major functionalities of t
 
 ---
 
-## 4. Start from Present Time or Epoch Time
+## 4. Shortest Path Visualization
+
+### Description:
+
+- Renders precomputed shortest paths between satellites at different timestamps.
+- Uses input files that specify paths over time.
+- By default, the simulation starts at the **epoch time** of the first satellite in the uploaded **TLE file**.
+- The displayed shortest path updates dynamically based on **time wrapping**.
+
+### Steps:
+
+1. Navigate to the **`Testing/Shortest_Path_Testing`** folder.
+
+2. **Upload the Required TLE File**:
+
+   - **File**: `Starlink_70_20231030160003.txt`
+   - Upload it via **Insert TLE List** in the GUI.
+   - This initializes the satellites in the system.
+
+3. **Upload the Shortest Path File**:
+
+   - **File**: `shortestpath.txt`
+   - Upload it in the **Shortest Path Visualization** section of the GUI.
+   - The file should have the following format:
+     ```
+     timestamp,satellite1,satellite2,satellite3,…
+     2023-10-30T13:00:00Z,55275,55279,55277,55400
+     ```
+   - This file contains **precomputed shortest paths** for specific timestamps.
+
+4. **Verify Initial Path Visualization**:
+
+   - The system reads `shortestpath.txt` in **ShortestPathFile.js**.
+   - The parsed data is stored in an array `shortestPaths[]`:
+     - `shortestPaths[i].timestamp` holds the timestamp.
+     - `shortestPaths[i].satelliteIds` holds the ordered satellite path.
+   - The **correct shortest path** should be drawn between the satellites at the current simulation time.
+
+5. **Use Time Warp to Observe Path Changes**:
+
+   - Enable **Time Warp** in the **Time** section.
+   - Adjust the **warp size** to move through different timestamps.
+   - As time progresses, the system updates the displayed shortest path.
+   - The function `visualizeShortestPaths()`:
+     - Selects the closest timestamp in `shortestpath.txt`.
+     - Updates the displayed path accordingly.
+
+6. **Confirm Path Transitions**:
+   - If the simulation time is **before the first timestamp**, the **first path** in the file is used.
+   - If the simulation time is **after the last timestamp**, the **last path** in the file is used.
+   - If the simulation time is **between two timestamps**, the **closest available path** is displayed.
+   - Ensure smooth transitions of paths as time progresses.
+
+### Expected Results:
+
+- The **shortest path updates dynamically** based on simulation time.
+- Paths change as **Time Warp** progresses.
+- The correct sequence of satellites is highlighted.
+- If no valid timestamp is found, **no path is displayed**.
+
+### Issues That Can Break Visualization:
+
+| Issue                            | Cause                               | Solution                                       |
+| -------------------------------- | ----------------------------------- | ---------------------------------------------- |
+| Time Not Updating Correctly      | Simulation time not advancing       | Ensure time is updating correctly              |
+| File Not Parsed Properly         | `shortestPaths` is empty            | Verify file format and parsing                 |
+| Missing Satellite Data           | A satellite ID is not in the system | Check if satellites exist in uploaded TLE file |
+| Wrong Coordinate Transformations | ECEF/J2000 conversions failing      | Debug matrix transformation logic              |
+
+### File Location for Testing:
+
+- **TLE File**: `Testing/Shortest_Path_Testing/Starlink_70_20231030160003.txt`
+- **Path File**: `Testing/Shortest_Path_Testing/shortestpath.txt`
+
+## 5. Start from Present Time or Epoch Time
 
 ### Description:
 
@@ -136,7 +210,7 @@ This document provides detailed steps for testing all major functionalities of t
 
 ---
 
-## 5. Time Wrapping
+## 6. Time Wrapping
 
 ### Description:
 
