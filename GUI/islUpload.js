@@ -28,6 +28,7 @@ function handleISLFileUploadByName(event) {
   if (file) {
     const reader = new FileReader()
     reader.onload = (e) => {
+      islData.links = [] // 🔥 Clear old ISL links before adding new ones
       const content = e.target.result
       parseISLFile(content, 'name') // Indicate the parsing type (by name)
       console.log('Parsed ISL Links by Name:', islData.links)
@@ -48,6 +49,7 @@ function handleISLFileUploadByCatalog(event) {
   if (file) {
     const reader = new FileReader()
     reader.onload = (e) => {
+      islData.links = [] // 🔥 Clear old ISL links before adding new ones
       const content = e.target.result
       parseISLFile(content, 'catalog') // Indicate the parsing type (by catalog)
       console.log('Parsed ISL Links by Catalog Number:', islData.links)
