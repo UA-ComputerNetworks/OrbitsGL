@@ -168,7 +168,7 @@ function createControls() {
 
     this.source = 'Telemetry'
     this.enableClock = false
-    this.targetName = 'Loading...' // Default placeholder
+    this.targetName = '' // Default placeholder
     this.osvYear = 2021
     this.osvMonth = 11
     this.osvDay = 22

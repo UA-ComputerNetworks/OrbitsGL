@@ -1,4 +1,4 @@
-# 📌 Satellite Visualization System - Testing Guide
+# 📌 LEO Constellation Visualisation - Testing Guide
 
 This guide explains how to **test all features of the satellite visualization system**, including:
 
