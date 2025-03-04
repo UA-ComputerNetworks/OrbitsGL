@@ -95,7 +95,7 @@ function createControls() {
     this.enableMap = true
     this.enableVisibility = true
     this.enableTextures = true
-    this.enableSun = true
+    this.enableSun = false
     this.enableMoon = true
     this.enableSubSolar = false
     this.enableList = false
@@ -301,7 +301,7 @@ function createControls() {
 
   osvControls.insertList = gui
     .add(guiControls, 'insertList')
-    .name('Insert TLE List')
+    .name('Upload TLE List')
 
   // Select TLE controls.
 
