@@ -95,7 +95,7 @@ function createControls() {
     this.enableMap = true
     this.enableVisibility = true
     this.enableTextures = true
-    this.enableSun = true
+    this.enableSun = false
     this.enableMoon = true
     this.enableSubSolar = false
     this.enableList = false
@@ -168,7 +168,7 @@ function createControls() {
 
     this.source = 'Telemetry'
     this.enableClock = false
-    this.targetName = 'ISS (ZARYA)'
+    this.targetName = 'Loading...' // Default placeholder
     this.osvYear = 2021
     this.osvMonth = 11
     this.osvDay = 22
@@ -301,7 +301,7 @@ function createControls() {
 
   osvControls.insertList = gui
     .add(guiControls, 'insertList')
-    .name('Insert TLE List')
+    .name('Upload TLE List')
 
   // Select TLE controls.
 

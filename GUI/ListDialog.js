@@ -93,11 +93,19 @@ TLEFileInput.onchange = function (event) {
         timestamp = Date.now() // Assign current system time if no timestamp is found
       }
 
+      // Extract constellation name from filename (Example: "Starlink_20231101000004.txt")
+      const constellationName = file.name.split('_')[0]
+
       // Store file content along with timestamp
       tleFiles.push({ name: file.name, content, timestamp })
       console.log(
         `Loaded file: ${file.name}, Timestamp: ${new Date(timestamp)}`
       )
+
+      // Update `targetName` dynamically in GUI
+      if (window.guiControls) {
+        window.guiControls.targetName = constellationName
+      }
 
       // Append to textarea for display
       TLEinput.value += `${file.name}\n`
