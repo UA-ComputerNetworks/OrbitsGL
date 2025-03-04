@@ -160,6 +160,50 @@ Each row contains:
 - **TLE files are sorted correctly by timestamp.**
 - **The system updates and shifts files based on time progression.**
 
+## 4️⃣ Shortest Path Visualization
+
+📌 **What This Does**: Renders precomputed **shortest paths** between satellites at different timestamps.
+
+### 📂 Folder:
+
+`Testing/Shortest_Path_Testing/`
+
+### 📄 Files Needed:
+
+- **TLE File** → `Starlink_70_20231030160003.txt`
+- **Shortest Path File** → `shortestpath.txt`
+
+### **File Format:**
+
+#### 📌 Shortest Path (`shortestpath.txt`)
+
+Each row contains: , , , , …
+
+- `<timestamp>` → The time at which the shortest path is valid.
+- `<satellite1>, <satellite2>, <satellite3>` → The sequence of satellites forming the shortest path.
+
+### **Steps**:
+
+1. **Go to the folder:** `Testing/Shortest_Path_Testing/`
+2. **Upload the Required TLE File:** `Starlink_70_20231030160003.txt`
+3. **Upload the Shortest Path File:** `shortestpath.txt`
+4. **Verify Initial Path Visualization:**
+   - The system reads `shortestpath.txt`.
+   - The parsed data is stored in an array:
+     - `shortestPaths[i].timestamp` → Holds the timestamp.
+     - `shortestPaths[i].satelliteIds` → Holds the ordered satellite path.
+   - The **correct shortest path** should be drawn between the satellites at the current simulation time.
+5. **Use Time Wrap to Observe Path Changes:**
+   - Enable **Time Wrap** in the **Time** section.
+   - Adjust the **warp size** to move through different timestamps.
+   - As time progresses, the system updates the displayed shortest path.
+
+✅ **Expected Outcome**:
+
+- **The shortest path updates dynamically** based on simulation time.
+- **Paths change as Time Wrap progresses**.
+- **The correct sequence of satellites is highlighted**.
+
 ## 📝 Final Checklist
 
 | Feature            | Folder & File Locations                | Expected Outcome              |
@@ -168,5 +212,6 @@ Each row contains:
 | Select Satellites  | `Testing/SelectSatellite_Testing/`     | Highlighted satellites        |
 | View ISLs          | `Testing/InterSatellite_Link_Testing/` | Lines between satellites      |
 | Multi-TLE Handling | `Testing/MultiTLE_Testing/`            | Satellites update dynamically |
+| Shortest Path      | `Testing/Shortest_Path_Testing/`       | Paths drawn dynamically       |
 
 ---
