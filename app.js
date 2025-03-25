@@ -455,9 +455,10 @@ function drawScene(time) {
     station.positionECEF = latLonToECEF(station.lat, station.lon, station.alt)
   })
 
-  drawGroundStationsCustom(matrix, nutPar, today)
+  //drawGroundStationsCustom(matrix, nutPar, today)
   // After drawing built-in ground stations
   drawUploadedGroundStations(matrix, nutPar, today)
+  drawUploadedGroundStationsCustom(matrix, nutPar, today)
 
   drawing = false
 }

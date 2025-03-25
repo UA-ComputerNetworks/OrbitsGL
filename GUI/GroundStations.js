@@ -67,8 +67,32 @@ function drawUploadedGroundStations(matrix, nutPar, today) {
       matrix,
       nutPar,
       station.color,
-      0.015 // scale
+      0.1 // scale
     )
     drawCaption(station.positionECEF, station.name, matrix)
+  })
+}
+
+/**
+ * Draws the uploaded ground stations using proper point shader logic.
+ * This version uses `earthShaders.draw` directly like built-in ground stations.
+ *
+ * @param {Object} matrix - View matrix
+ * @param {Object} nutPar - Nutation parameters
+ * @param {Date} today - Current timestamp
+ */
+function drawUploadedGroundStationsCustom(matrix, nutPar, today) {
+  uploadedGroundStations.forEach((station) => {
+    const [x, y, z] = station.positionECEF // Already ECEF computed
+
+    // Create matrix for point position and scale
+    let stationMatrix = m4.translate(matrix, x, y, z)
+    stationMatrix = m4.scale(stationMatrix, 0.01, 0.01, 0.01) // Adjust size
+
+    const color = station.color || [255, 255, 255] // Default white if none
+
+    // Draw using the same method as ground station markers
+    earthShaders.setSatelliteColor(color[0], color[1], color[2])
+    earthShaders.draw(stationMatrix, 0, 0, LST, false, false, false, color)
   })
 }
