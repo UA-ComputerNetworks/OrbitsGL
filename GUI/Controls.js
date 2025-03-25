@@ -733,4 +733,31 @@ function createControls() {
   shortestPathFolder
     .add(guiControls, 'uploadShortestPathFile')
     .name('Upload Shortest Path File')
+
+  // ========== Ground Station Upload ==========
+
+  // Hidden file input trigger via GUI
+  guiControls.uploadGroundStationFile = function () {
+    const input = document.createElement('input')
+    input.type = 'file'
+    input.accept = '.txt'
+
+    input.addEventListener('change', (event) => {
+      const file = event.target.files[0]
+      const reader = new FileReader()
+      reader.onload = function (e) {
+        const contents = e.target.result
+        loadGroundStationsFromText(contents)
+      }
+      reader.readAsText(file)
+    })
+
+    input.click()
+  }
+
+  // Add GUI folder to dat.GUI panel
+  const groundFolder = gui.addFolder('Ground Stations')
+  groundFolder
+    .add(guiControls, 'uploadGroundStationFile')
+    .name('Upload Ground Stations')
 }

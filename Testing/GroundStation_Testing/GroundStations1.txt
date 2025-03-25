@@ -1,0 +1,27 @@
+# Ground Stations Upload Test File
+# Format: City Name, Latitude, Longitude
+
+Los Angeles, 34.0522, -118.2437
+Redmond (Starlink HQ), 47.6731, -122.1185
+
+# SpaceX locations
+Hawthorne, 33.9206, -118.3272
+Boca Chica, 26.014, -97.1562
+
+# Florida Launch Site
+Orlando, 28.5383, -81.3792
+
+# European Ground Station
+Paris, 48.8566, 2.3522
+
+# Asian Station
+Tokyo, 35.6895, 139.6917
+
+# Australian site
+Sydney, -33.8688, 151.2093
+
+# South America
+Buenos Aires, -34.6037, -58.3816
+
+# African Station
+Cape Town, -33.9249, 18.4241

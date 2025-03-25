@@ -456,6 +456,8 @@ function drawScene(time) {
   })
 
   drawGroundStationsCustom(matrix, nutPar, today)
+  // After drawing built-in ground stations
+  drawUploadedGroundStations(matrix, nutPar, today)
 
   drawing = false
 }
