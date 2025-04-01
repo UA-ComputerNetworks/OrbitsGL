@@ -72,42 +72,43 @@ function loadGroundStationsFromText(fileContent) {
 //     drawCaption(station.positionECEF, station.name, matrix)
 //   })
 // }
-
 function drawUploadedGroundStations(matrix, nutPar, today) {
   uploadedGroundStations.forEach((station) => {
-    const ecef = station.positionECEF
+    const positionKM = station.positionECEF // in km
+    const positionM = MathUtils.vecmul(positionKM, 1000) // convert to meters
 
-    // ✅ Clip-space visibility check
-    const clip = m4.transformVector(matrix, [ecef[0], ecef[1], ecef[2], 1])
-    const clipZ = clip[2] / clip[3]
-    const isVisible = clip[3] > 0 && clipZ > -1 && clipZ < 1
-
-    // 🎯 Draw sphere marker
+    // Draw sphere marker like a satellite
     drawSatellite(
       {
         osvProp: {
-          r: ecef,
+          r: positionM,
           v: [0, 0, 0],
           ts: today,
         },
       },
       matrix,
       nutPar,
-      station.color || [0, 255, 0],
-      0.05
+      station.color,
+      0.1
     )
 
-    // 🏷️ Draw label only if visible
-    if (isVisible) {
-      const ndcX = clip[0] / clip[3]
-      const ndcY = clip[1] / clip[3]
-      const pixelX = (ndcX * 0.5 + 0.5) * gl.canvas.width
-      const pixelY = (ndcY * -0.5 + 0.5) * gl.canvas.height
+    // Convert to clip space:
+    const worldCoords = MathUtils.vecmul(positionKM, 0.001) // scale to same units
+    const clipCoords = m4.transformVector(matrix, [...worldCoords, 1])
 
-      contextJs.fillStyle = `rgb(${station.color[0]}, ${station.color[1]}, ${station.color[2]})`
-      contextJs.textAlign = 'center'
-      contextJs.textBaseline = 'bottom'
-      contextJs.fillText(station.name, pixelX, pixelY)
+    // Perspective divide
+    const clipX = clipCoords[0] / clipCoords[3]
+    const clipY = clipCoords[1] / clipCoords[3]
+    const clipZ = clipCoords[2] / clipCoords[3]
+
+    console.log(`📍 ${station.name} → clipZ: ${clipZ}`)
+
+    // Only draw if in front of camera (clipZ in [-1, 1])
+    if (clipZ >= -1 && clipZ <= 1) {
+      const canvasX = (clipX * 0.5 + 0.5) * gl.canvas.width
+      const canvasY = (clipY * -0.5 + 0.5) * gl.canvas.height
+      contextJs.fillStyle = 'white'
+      contextJs.fillText(station.name, canvasX, canvasY)
     }
   })
 }

@@ -457,7 +457,21 @@ function drawScene(time) {
 
   //drawGroundStationsCustom(matrix, nutPar, today)
   // After drawing built-in ground stations
+
+  // const cameraPos = [
+  //   1000 *
+  //     guiControls.distance *
+  //     MathUtils.cosd(guiControls.lat) *
+  //     MathUtils.cosd(guiControls.lon),
+  //   1000 *
+  //     guiControls.distance *
+  //     MathUtils.cosd(guiControls.lat) *
+  //     MathUtils.sind(guiControls.lon),
+  //   1000 * guiControls.distance * MathUtils.sind(guiControls.lat),
+  // ]
+
   drawUploadedGroundStations(matrix, nutPar, today)
+
   drawUploadedGroundStationsCustom(matrix, nutPar, today)
 
   drawing = false
