@@ -369,6 +369,8 @@ function drawScene(time) {
   gl.enable(gl.CULL_FACE)
 
   const matrix = createViewMatrix()
+
+  //const { viewMatrix } = getViewAndProjectionMatrix()
   drawEarth(matrix, rASun, declSun, LST, JT, nutPar)
 
   // Draw selected satellites selected from Select TLE.
@@ -471,6 +473,7 @@ function drawScene(time) {
   // ]
 
   drawUploadedGroundStations(matrix, nutPar, today)
+  //drawUploadedGroundStations(matrix, viewMatrix, nutPar, today)
 
   drawUploadedGroundStationsCustom(matrix, nutPar, today)
 
@@ -681,6 +684,32 @@ function createViewMatrix() {
   matrix = m4.zRotate(matrix, rotZ)
 
   return matrix
+}
+
+function getViewAndProjectionMatrix() {
+  const fieldOfViewRadians = MathUtils.deg2Rad(guiControls.fov)
+  const aspect = gl.canvas.clientWidth / gl.canvas.clientHeight
+  const zNear = (distance - b) / 2
+  const projectionMatrix = m4.perspective(
+    fieldOfViewRadians,
+    aspect,
+    zNear,
+    zFar
+  )
+
+  distance = cameraControls.distance.getValue()
+  const cameraPosition = [0, 0, distance]
+  const up = [
+    MathUtils.cosd(guiControls.upLat) * MathUtils.cosd(guiControls.upLon),
+    MathUtils.sind(guiControls.upLat),
+    MathUtils.cosd(guiControls.upLat) * MathUtils.sind(guiControls.upLon),
+  ]
+  const target = [0, 0, 0]
+
+  const cameraMatrix = m4.lookAt(cameraPosition, target, up)
+  const viewMatrix = m4.inverse(cameraMatrix)
+
+  return { viewMatrix, projectionMatrix }
 }
 
 /**

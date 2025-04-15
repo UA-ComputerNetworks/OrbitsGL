@@ -118,31 +118,42 @@ function loadGroundStationsFromText(fileContent) {
 //   return visible
 // }
 
-function isVisibleFromCamera(pointECEF, fullViewProjMatrix) {
-  const fieldOfViewRadians = MathUtils.deg2Rad(guiControls.fov)
-  const aspect = gl.canvas.clientWidth / gl.canvas.clientHeight
-  const zNear = 1.0
-  const projectionMatrix = m4.perspective(
-    fieldOfViewRadians,
-    aspect,
-    zNear,
-    zFar
-  )
+// function isVisibleFromCamera(pointECEF, fullViewProjMatrix) {
+//   const fieldOfViewRadians = MathUtils.deg2Rad(guiControls.fov)
+//   const aspect = gl.canvas.clientWidth / gl.canvas.clientHeight
+//   const zNear = 1.0
+//   const projectionMatrix = m4.perspective(
+//     fieldOfViewRadians,
+//     aspect,
+//     zNear,
+//     zFar
+//   )
 
-  // Recover viewMatrix by removing projection from viewProjection
-  const inverseProjection = m4.inverse(projectionMatrix)
-  const viewMatrix = m4.multiply(inverseProjection, fullViewProjMatrix)
+//   // Recover viewMatrix by removing projection from viewProjection
+//   const inverseProjection = m4.inverse(projectionMatrix)
+//   const viewMatrix = m4.multiply(inverseProjection, fullViewProjMatrix)
 
-  // Transform station to eye space
-  const eyeCoords = m4.transformVector(viewMatrix, [...pointECEF, 1])
-  const z = eyeCoords[2]
+//   // Transform station to eye space
+//   const eyeCoords = m4.transformVector(viewMatrix, [...pointECEF, 1])
+//   const z = eyeCoords[2]
 
-  const visible = z < 0
-  console.log(
-    `[Eye-Space Z Check] Eye-Z = ${z.toFixed(4)}, Visible = ${visible}`
-  )
-  return visible
-}
+//   const visible = z < 0
+//   console.log(
+//     `[Eye-Space Z Check] Eye-Z = ${z.toFixed(4)}, Visible = ${visible}`
+//   )
+//   return visible
+// }
+
+// function isVisibleFromCamera(pointECEF, viewMatrix) {
+//   const eyeCoords = m4.transformVector(viewMatrix, [...pointECEF, 1])
+//   const z = eyeCoords[2]
+
+//   const visible = z < 0
+//   console.log(
+//     `[Eye-Space Z Check] Eye-Z = ${z.toFixed(4)}, Visible = ${visible}`
+//   )
+//   return visible
+// }
 
 function drawCaption2(ecefPos, caption, viewMatrix) {
   const clip = m4.transformVector(viewMatrix, [...ecefPos, 1])
@@ -164,7 +175,81 @@ function drawCaption2(ecefPos, caption, viewMatrix) {
   contextJs.fillText(caption, pixelX, pixelY)
 }
 
+function checkIntersectionGroundStations(source, target, radius) {
+  // All in ECEF
+  const ray = MathUtils.vecsub(target, source)
+  const dir = MathUtils.vecmul(ray, 1 / MathUtils.norm(ray)) // normalize
+
+  // Assume Earth centered at (0,0,0)
+  const oc = source
+  const b = 2 * MathUtils.dot(dir, oc)
+  const c = MathUtils.dot(oc, oc) - radius * radius
+
+  const discriminant = b * b - 4 * c // (a = 1 so ignored)
+
+  // Add detailed debug logging
+  console.log(`🧪 checkIntersection`)
+  console.log(`→ source: ${source.map((x) => x.toFixed(2)).join(', ')}`)
+  console.log(`→ target: ${target.map((x) => x.toFixed(2)).join(', ')}`)
+  console.log(`→ discriminant = ${discriminant.toFixed(2)}`)
+
+  if (discriminant < 0) {
+    console.log('✅ No intersection — visible')
+    return false
+  }
+
+  // Compute distance to intersection point
+  const t = (-b - Math.sqrt(discriminant)) / 2
+  const distanceToTarget = MathUtils.norm(ray)
+
+  const hit = t > 0 && t < distanceToTarget
+  console.log(
+    `→ intersection t = ${t.toFixed(
+      2
+    )}, distance to target = ${distanceToTarget.toFixed(2)}`
+  )
+  return hit
+}
+
+// function isVisibleFromCamera(cameraPos, targetECEF) {
+//   const cameraDir = MathUtils.vecmul(cameraPos, -1) // vector pointing from camera to Earth center
+//   const targetDir = MathUtils.vecsub(targetECEF, [0, 0, 0]) // vector from Earth's center to station
+
+//   const cameraUnit = MathUtils.vecmul(cameraDir, 1 / MathUtils.norm(cameraDir))
+//   const targetUnit = MathUtils.vecmul(targetDir, 1 / MathUtils.norm(targetDir))
+
+//   const dot = MathUtils.dot(cameraUnit, targetUnit)
+
+//   console.log(
+//     `🧠 [Visibility] dot = ${dot.toFixed(4)} (${
+//       dot > 0 ? '✅ Visible' : '⛔ Occluded'
+//     })`
+//   )
+//   return dot > 0
+// }
+
+function isVisibleFromCamera(cameraPos, stationECEF) {
+  // Normalize both vectors from Earth center
+  const cameraUnit = MathUtils.vecmul(cameraPos, 1 / MathUtils.norm(cameraPos))
+  const stationUnit = MathUtils.vecmul(
+    stationECEF,
+    1 / MathUtils.norm(stationECEF)
+  )
+
+  // dot > 0 means station and camera are on same hemisphere
+  const dot = MathUtils.dot(cameraUnit, stationUnit)
+
+  console.log(
+    `🧠 [Visibility] dot(camera, station) = ${dot.toFixed(4)} → ${
+      dot > 0 ? '✅ VISIBLE' : '⛔ OCCLUDED'
+    }`
+  )
+
+  return dot > 0
+}
+
 function drawUploadedGroundStations(matrix, nutPar, today) {
+  // Compute camera position in ECEF
   const cameraPos = [
     1000 *
       guiControls.distance *
@@ -182,20 +267,16 @@ function drawUploadedGroundStations(matrix, nutPar, today) {
     const name = station.name
 
     console.log(`\n📡 Checking Station: ${name}`)
-    console.log(
-      `[ECEF] X=${ecef[0].toFixed(2)} Y=${ecef[1].toFixed(
-        2
-      )} Z=${ecef[2].toFixed(2)}`
-    )
+    console.log(`[ECEF] ${ecef.map((x) => x.toFixed(2)).join(', ')}`)
 
-    if (!isVisibleFromCamera(ecef, matrix)) {
-      console.log(`⛔ ${name} is hidden behind the Earth — skipping.`)
+    if (!isVisibleFromCamera(cameraPos, station.positionECEF)) {
+      console.log(`⛔ ${name} is behind Earth — skipping.`)
       return
     }
 
     console.log(`✅ ${name} is visible — drawing.`)
 
-    // Sphere marker
+    // Draw marker
     drawSatellite(
       {
         osvProp: {
@@ -210,8 +291,8 @@ function drawUploadedGroundStations(matrix, nutPar, today) {
       0.05
     )
 
-    // Caption label
-    drawCaption2(ecef, name, matrix)
+    // Draw label
+    drawCaption(ecef, name, matrix)
   })
 }
 
