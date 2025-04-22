@@ -396,7 +396,7 @@ function drawScene(time) {
   ]
 
   selectedSatellites.forEach((satellite) => {
-    drawSatelliteCaption(satellite, matrix, nutPar, cameraPos)
+    drawSatelliteCaption2(satellite, matrix, nutPar, cameraPos)
   })
 
   let rotMatrixTeme
@@ -1378,8 +1378,52 @@ function drawSatelliteCaption(satellite, matrix, nutPar, cameraPos) {
   const altitudeKm = Math.round(MathUtils.norm(ecefPos) - 6371)
 
   // Prepare caption text
-  const captionText = `${satellite.name} | ${altitudeKm} km`
+  //const captionText = `${satellite.name} | ${altitudeKm} km`
+  const captionText = `${satellite.name}\nAlt: ${altitudeKm} km`
 
   // Draw the caption
   drawCaption(MathUtils.vecsub(ecefPos, cameraPos), captionText, matrix)
+}
+
+function getScreenPosition(ecefPos, cameraPos, matrix) {
+  const relativePos = MathUtils.vecsub(ecefPos, cameraPos)
+  const clipSpace = m4.transformVector(matrix, [...relativePos, 1])
+
+  if (clipSpace[3] <= 0) return null // Behind camera
+
+  const ndcX = clipSpace[0] / clipSpace[3]
+  const ndcY = clipSpace[1] / clipSpace[3]
+
+  const pixelX = (ndcX * 0.5 + 0.5) * gl.canvas.width
+  const pixelY = (ndcY * -0.5 + 0.5) * gl.canvas.height
+
+  return [pixelX, pixelY]
+}
+
+function drawSatelliteCaption2(satellite, matrix, nutPar, cameraPos) {
+  const osv_ECEF = Frames.osvJ2000ToECEF(satellite.osvProp, nutPar)
+  const ecefPos = osv_ECEF.r
+
+  if (checkIntersection(cameraPos, ecefPos, 6371000)) return
+
+  const altitudeKm = Math.round(MathUtils.norm(ecefPos) - 6371)
+
+  const nameText = `${satellite.name}`
+  const altText = `Alt: ${altitudeKm} km`
+
+  const screenPos = getScreenPosition(ecefPos, cameraPos, matrix)
+
+  if (screenPos) {
+    const [pixelX, pixelY] = screenPos
+
+    // 🎨 Set custom font, size, and color
+    contextJs.font = 'bold 14px Arial'
+    contextJs.fillStyle = 'rgba(255, 255, 0, 0.9)' // Bright yellow
+    contextJs.textAlign = 'center'
+    contextJs.textBaseline = 'bottom'
+
+    contextJs.fillText(nameText, pixelX, pixelY)
+    contextJs.font = '12px Arial'
+    contextJs.fillText(altText, pixelX, pixelY + 14) // Slightly below the name
+  }
 }
