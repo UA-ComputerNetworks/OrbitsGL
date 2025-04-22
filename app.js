@@ -383,6 +383,22 @@ function drawScene(time) {
     drawSatellite(satellite, matrix, nutPar)
   })
 
+  const cameraPos = [
+    1000 *
+      guiControls.distance *
+      MathUtils.cosd(guiControls.lat) *
+      MathUtils.cosd(guiControls.lon),
+    1000 *
+      guiControls.distance *
+      MathUtils.cosd(guiControls.lat) *
+      MathUtils.sind(guiControls.lon),
+    1000 * guiControls.distance * MathUtils.sind(guiControls.lat),
+  ]
+
+  selectedSatellites.forEach((satellite) => {
+    drawSatelliteCaption(satellite, matrix, nutPar, cameraPos)
+  })
+
   let rotMatrixTeme
   if (enableList) {
     // Performance : It is significantly faster to perform the J2000->ECEF coordinate
@@ -1349,4 +1365,21 @@ function drawGroundStationsCustom(matrix, nutPar, today) {
       color
     )
   })
+}
+
+function drawSatelliteCaption(satellite, matrix, nutPar, cameraPos) {
+  const osv_ECEF = Frames.osvJ2000ToECEF(satellite.osvProp, nutPar)
+  const ecefPos = osv_ECEF.r
+
+  // Check if Earth is blocking the satellite
+  if (checkIntersection(cameraPos, ecefPos, 6371000)) return
+
+  // Compute altitude
+  const altitudeKm = Math.round(MathUtils.norm(ecefPos) - 6371)
+
+  // Prepare caption text
+  const captionText = `${satellite.name} | ${altitudeKm} km`
+
+  // Draw the caption
+  drawCaption(MathUtils.vecsub(ecefPos, cameraPos), captionText, matrix)
 }
