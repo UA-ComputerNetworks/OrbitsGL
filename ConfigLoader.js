@@ -112,12 +112,23 @@ function loadSatelliteHighlightFile(path) {
     })
 }
 
-function loadISLFile(url) {
-  fetch(url)
+function loadISLFile(path) {
+  fetch(path)
     .then((res) => res.text())
-    .then((data) => {
-      // Implement this in your app
-      console.log('Loaded ISL:', url)
+    .then((content) => {
+      // Clear old ISL links
+      islData.links = []
+
+      // Determine mode
+      const isCatalog = path.toLowerCase().includes('catalog')
+      const type = isCatalog ? 'catalog' : 'name'
+
+      // in GUI/islUpload.js
+      parseISLFile(content, type)
+      console.log(`✅ Loaded ISL from: ${path} [mode=${type}]`)
+    })
+    .catch((e) => {
+      console.error(`❌ Failed to load ISL file at ${path}:`, e)
     })
 }
 
