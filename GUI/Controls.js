@@ -760,4 +760,27 @@ function createControls() {
   groundFolder
     .add(guiControls, 'uploadGroundStationFile')
     .name('Upload Ground Stations')
+
+  // Reset button
+
+  gui.add({ resetAllData }, 'resetAllData').name('Reset All Data')
+}
+
+// Reset all the data.
+function resetAllData() {
+  // Wipe globals
+  if (typeof satellites !== 'undefined') satellites = []
+  if (typeof selectedSatellites !== 'undefined') selectedSatellites = []
+  if (typeof satelliteObjects !== 'undefined') satelliteObjects = []
+  if (typeof uploadedGroundStations !== 'undefined') uploadedGroundStations = []
+  if (typeof islData !== 'undefined') islData = { links: [] }
+  if (typeof shortestPathIds !== 'undefined') shortestPathIds = []
+
+  if (typeof contextJs !== 'undefined')
+    contextJs.clearRect(0, 0, canvasJs.width, canvasJs.height)
+
+  if (typeof gl !== 'undefined')
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+
+  console.log('Visualization reset.')
 }

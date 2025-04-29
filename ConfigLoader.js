@@ -149,21 +149,3 @@ function loadGroundStationsFromFile(url) {
       console.log('Loaded ground stations:', url)
     })
 }
-
-function resetAllData() {
-  // Wipe globals
-  if (typeof satellites !== 'undefined') satellites = []
-  if (typeof selectedSatellites !== 'undefined') selectedSatellites = []
-  if (typeof satelliteObjects !== 'undefined') satelliteObjects = []
-  if (typeof uploadedGroundStations !== 'undefined') uploadedGroundStations = []
-  if (typeof islData !== 'undefined') islData = { links: [] }
-  if (typeof shortestPathIds !== 'undefined') shortestPathIds = []
-
-  if (typeof contextJs !== 'undefined')
-    contextJs.clearRect(0, 0, canvasJs.width, canvasJs.height)
-
-  if (typeof gl !== 'undefined')
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
-
-  console.log('Visualization reset.')
-}
