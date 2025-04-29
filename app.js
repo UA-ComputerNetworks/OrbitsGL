@@ -1406,7 +1406,12 @@ function drawSatelliteCaption2(satellite, matrix, nutPar, cameraPos) {
 
   if (checkIntersection(cameraPos, ecefPos, 6371000)) return
 
-  const altitudeKm = Math.round(MathUtils.norm(ecefPos) - 6371)
+  const earthRadiusKm = 6371
+  const ecefKm = MathUtils.vecmul(ecefPos, 0.001)
+  const altitudeKm = Math.max(
+    0,
+    Math.round(MathUtils.norm(ecefKm) - earthRadiusKm)
+  )
 
   const nameText = `${satellite.name}`
   const altText = `Alt: ${altitudeKm} km`
@@ -1416,14 +1421,13 @@ function drawSatelliteCaption2(satellite, matrix, nutPar, cameraPos) {
   if (screenPos) {
     const [pixelX, pixelY] = screenPos
 
-    // 🎨 Set custom font, size, and color
     contextJs.font = 'bold 14px Arial'
-    contextJs.fillStyle = 'rgba(255, 255, 0, 0.9)' // Bright yellow
+    contextJs.fillStyle = 'rgba(255, 255, 0, 0.9)'
     contextJs.textAlign = 'center'
     contextJs.textBaseline = 'bottom'
 
     contextJs.fillText(nameText, pixelX, pixelY)
     contextJs.font = '12px Arial'
-    contextJs.fillText(altText, pixelX, pixelY + 14) // Slightly below the name
+    contextJs.fillText(altText, pixelX, pixelY + 14)
   }
 }
