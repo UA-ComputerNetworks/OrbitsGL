@@ -88,6 +88,12 @@ requestAnimationFrame(drawScene)
 let today = null
 let isEpochSet = false // Initialize the flag
 
+// for configuring file.
+
+window.onload = () => {
+  loadConfigurationFile('config.txt')
+}
+
 // Draw the scene.
 function drawScene(time) {
   if (earthShaders.numTextures < 2) {
