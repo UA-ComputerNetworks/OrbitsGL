@@ -1,4 +1,4 @@
 # Automatically load satellite and highlight data
-ConstellationFile = Testing/MultiTLE_Testing/Starlink_20231101000004.txt
-HighlightSatellitesFile = Testing/SelectSatellite_Testing/SelectTLE_Testing_ByCatalog.txt
+ConstellationFile = Testing/Select_Satellite_Testing/Starlink_20231116160005.txt
+HighlightSatellitesFile = Testing/Select_Satellite_Testing/SelectDialog_Testing_Name_1.txt
 ISLFile = Testing/InterSatellite_Link_Testing/ISL_ByCatalog_Testing.txt

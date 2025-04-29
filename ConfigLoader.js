@@ -73,12 +73,42 @@ function loadTLEFile(path) {
     .catch((e) => console.error('Error loading TLE:', e))
 }
 
-function loadSatelliteHighlightFile(url) {
-  fetch(url)
+function loadSatelliteHighlightFile(path) {
+  fetch(path)
     .then((res) => res.text())
     .then((data) => {
-      // Implement this in your app
-      console.log('Loaded highlights:', url)
+      const lines = data.split('\n')
+      satelliteColorMap = {} // reset
+
+      lines.forEach((line) => {
+        const trimmed = line.trim()
+        if (trimmed === '' || trimmed.startsWith('#')) return
+
+        const parts = trimmed.split(',').map((p) => p.trim())
+        if (parts.length < 4) {
+          console.warn(`Invalid line in highlight file: ${line}`)
+          return
+        }
+
+        const id = parts[0]
+        const r = parseInt(parts[1])
+        const g = parseInt(parts[2])
+        const b = parseInt(parts[3])
+        const color = [r, g, b]
+
+        // Try catalog number mapping first
+        const satName = satelliteCatalogMap?.[id] || id
+        satelliteColorMap[satName] = color
+
+        console.log(`✔ Highlight: ${satName} → ${color}`)
+      })
+
+      // Trigger coloring and selection logic
+      processSatelliteSelection()
+      console.log(`✅ Satellite highlights applied from: ${path}`)
+    })
+    .catch((e) => {
+      console.error(`❌ Failed to load Satellite Highlight File at ${path}:`, e)
     })
 }
 
