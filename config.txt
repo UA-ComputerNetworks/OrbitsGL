@@ -1,9 +1,57 @@
-# Automatically load satellite and highlight data
+# ===========================
+# Configuration File for OrbitsGL
+# ===========================
+# This file tells the visualization tool which datasets to load by default.
+# Each entry below specifies the path to a file.
+# Lines beginning with '#' are comments and will be ignored.
+# You can edit this file to pre-load your preferred data without manually uploading them every time.
 
+# --------------------------------------
+# TLE (Two-Line Element) File:
+# This line specifies which TLE file to load (defines satellite orbits).
+# Only ONE should be uncommented at a time unless you intentionally want to load multiple.
+# --------------------------------------
+
+# Example: Load satellites from the "Select_Satellite_Testing" folder
 #ConstellationFile = Testing/Select_Satellite_Testing/Starlink_20231116160005.txt
+
+# Example: Load satellites for ISL (Inter-Satellite Links) testing
 #ConstellationFile = Testing/InterSatellite_Link_Testing/Starlink_70_20231030160003.txt
+
+# ✅ This is the currently active TLE file for shortest path testing
 ConstellationFile = Testing/Shortest_Path_Testing/Starlink_70_20231030160003.txt
+
+# --------------------------------------
+# Satellite Highlight File:
+# Highlights specific satellites using RGB colors.
+# Each line in the file should follow the format:
+# SATELLITE_NAME_OR_ID, R, G, B
+# --------------------------------------
+
 HighlightSatellitesFile = Testing/Select_Satellite_Testing/SelectDialog_Testing_Name_1.txt
+
+# --------------------------------------
+# ISL (Inter-Satellite Links) File:
+# Draws lines between specified satellites to simulate network links.
+# Format: satellite1_name_or_id, satellite2_name_or_id
+# --------------------------------------
+
 ISLFile = Testing/InterSatellite_Link_Testing/ISL_Satellites_Testing_Names.txt
+
+
+# --------------------------------------
+# Ground Stations File:
+# Specifies Earth-based stations using name, latitude, and longitude.
+# Format: StationName, Latitude, Longitude
+# --------------------------------------
+
 GroundStationsFile = Testing/GroundStation_Testing/GroundStations_sample.txt
-ShortestPathFile=Testing/Shortest_Path_Testing/shortestpath.txt
+
+# --------------------------------------
+# Shortest Path File:
+# Defines the satellite-to-satellite path to highlight for routing.
+# Format: series of satellite names or IDs, one per line.
+# --------------------------------------
+
+# Shortest path may not be visible if it is already included in part of ISL. Comment ISL File to view it.
+ShortestPathFile = Testing/Shortest_Path_Testing/shortestpath.txt
