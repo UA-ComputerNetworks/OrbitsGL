@@ -67,6 +67,7 @@ TLEFileInput.onchange = function (event) {
     console.warn('No files selected.')
     return
   }
+  event.target.value = null // <-- Add this here
 
   console.log(`Processing ${files.length} file(s)...`)
   tleFiles = [] // Clear previous file data

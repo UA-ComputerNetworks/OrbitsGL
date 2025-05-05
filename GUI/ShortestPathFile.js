@@ -15,6 +15,7 @@ document.getElementById('ShortestPathFileInput').onchange = function (event) {
   } else {
     console.error('No file selected for Shortest Path Visualization.')
   }
+  event.target.value = '' // Reset input
 }
 let shortestPaths = []
 let currentShortestPathIndex = -1 // Track the current path index

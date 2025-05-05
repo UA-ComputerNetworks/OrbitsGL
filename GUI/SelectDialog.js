@@ -65,6 +65,7 @@ FileInputByName.onchange = function (event) {
   } else {
     console.error('No file selected for Satellite Names.')
   }
+  event.target.value = '' // Reset input
 }
 
 /**
@@ -124,6 +125,7 @@ FileInputByCatalog.onchange = function (event) {
   } else {
     console.error('No file selected for Satellite Catalog.')
   }
+  event.target.value = '' // Reset input
 }
 
 /**

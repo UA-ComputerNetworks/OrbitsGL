@@ -35,6 +35,7 @@ function handleISLFileUploadByName(event) {
     }
     reader.readAsText(file)
   }
+  event.target.value = '' // Reset input
 }
 
 /**
@@ -56,6 +57,7 @@ function handleISLFileUploadByCatalog(event) {
     }
     reader.readAsText(file)
   }
+  event.target.value = '' // Reset input
 }
 
 /**

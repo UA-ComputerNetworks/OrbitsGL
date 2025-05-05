@@ -750,6 +750,7 @@ function createControls() {
         loadGroundStationsFromText(contents)
       }
       reader.readAsText(file)
+      event.target.value = '' // Reset input
     })
 
     input.click()
