@@ -132,20 +132,24 @@ function loadISLFile(path) {
     })
 }
 
-function loadShortestPathFile(url) {
-  fetch(url)
+function loadShortestPathFile(path) {
+  fetch(path)
     .then((res) => res.text())
-    .then((data) => {
-      // Implement this in your app
-      console.log('Loaded shortest path:', url)
+    .then((content) => {
+      // Parse and store the paths
+      parseShortestPathFile(content)
+
+      // Optional: trigger first render manually here, or wait for time simulation
+      console.log(`✅ Shortest path file loaded: ${path}`)
+    })
+    .catch((e) => {
+      console.error(`❌ Failed to load shortest path file: ${path}`, e)
     })
 }
 
 function loadGroundStationsFromFile(url) {
   fetch(url)
     .then((res) => res.text())
-    .then((data) => {
-      // Implement this in your app
-      console.log('Loaded ground stations:', url)
-    })
+    .then((text) => loadGroundStationsFromText(text))
+    .catch((e) => console.error('Error loading ground stations:', e))
 }
