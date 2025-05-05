@@ -767,47 +767,56 @@ function createControls() {
 }
 
 // Reset all the data.
-
 function resetAllData() {
-  // Satellite data
+  // =========================
+  // CLEARING GLOBAL DATA
+  // =========================
+
+  // TLE and Satellite Data
+  if (typeof tleFiles !== 'undefined') tleFiles = []
+  if (typeof satelliteCatalogMap !== 'undefined') satelliteCatalogMap = {}
   if (typeof satellites !== 'undefined') satellites = []
   if (typeof satelliteNames !== 'undefined') satelliteNames = []
   if (typeof satNameToIndex !== 'undefined') satNameToIndex = []
   if (typeof satIndexToName !== 'undefined') satIndexToName = []
   if (typeof satelliteObjects !== 'undefined') satelliteObjects = {}
 
-  // TLE + catalog
-  if (typeof tleFiles !== 'undefined') tleFiles = []
-  if (typeof satelliteCatalogMap !== 'undefined') satelliteCatalogMap = {}
-  if (typeof tleData !== 'undefined') tleData.files = []
-
-  // Highlighting
+  // Satellite Selections and Highlights
+  if (typeof selectedSatellites !== 'undefined') selectedSatellites = []
   if (typeof satelliteColorMap !== 'undefined') satelliteColorMap = {}
 
-  // Ground stations
-  if (typeof uploadedGroundStations !== 'undefined') uploadedGroundStations = []
+  // ISLs
+  if (typeof islData !== 'undefined') {
+    islData.links = []
+    islData.style = { color: [255, 255, 255], style: 'solid', width: 10 }
+  }
 
-  // ISL links + style
-  if (typeof islData !== 'undefined')
-    islData = {
-      links: [],
-      style: { color: [255, 255, 255], style: 'solid', width: 10 },
-    }
-
-  // Shortest path
+  // Shortest Path
   if (typeof shortestPaths !== 'undefined') shortestPaths = []
   if (typeof currentShortestPathIndex !== 'undefined')
     currentShortestPathIndex = -1
 
-  // Clear canvas (2D and 3D)
-  if (typeof contextJs !== 'undefined')
+  // Ground Stations
+  if (typeof uploadedGroundStations !== 'undefined') uploadedGroundStations = []
+
+  // TLE File UI
+  const tleInput = document.getElementById('TLEListinput')
+  if (tleInput) tleInput.value = ''
+
+  // Shortest Path Inputs (optional, if present)
+  const pathInput = document.getElementById('ShortestPathFileInput')
+  if (pathInput) pathInput.value = ''
+
+  // Canvas & GL Reset
+  if (typeof contextJs !== 'undefined') {
     contextJs.clearRect(0, 0, canvasJs.width, canvasJs.height)
+  }
 
-  if (typeof gl !== 'undefined')
+  if (typeof gl !== 'undefined') {
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+  }
 
-  selectedSatellites = []
   console.log(
-    '✅ Full visualization reset: satellites, ground stations, ISL, TLEs, highlights, paths.'
+    '[✔] Reset: All satellite, ground station, ISL, and GUI data cleared.'
   )
 }
