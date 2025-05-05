@@ -806,6 +806,7 @@ function resetAllData() {
   if (typeof gl !== 'undefined')
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 
+  selectedSatellites = []
   console.log(
     '✅ Full visualization reset: satellites, ground stations, ISL, TLEs, highlights, paths.'
   )
