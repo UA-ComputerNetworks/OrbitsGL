@@ -405,8 +405,39 @@ function drawScene(time) {
     drawSatelliteCaption2(satellite, matrix, nutPar, cameraPos)
   })
 
+  // For satellite visibility with ground stations angle and visibilty calculation.
+
+  const satECEFList = []
+
+  for (let i = 0; i < osvSatListTeme.length; i++) {
+    const osvJ2000 = osvSatListTeme[i]
+    const osvECEF = Frames.osvJ2000ToECEF(osvJ2000, nutPar)
+    satECEFList.push({
+      name: satIndexToName[i],
+      positionECEF: osvECEF.r,
+    })
+  }
+
+  for (let gs of groundStations) {
+    const gsECEF = gs.positionECEF
+
+    for (let sat of satECEFList) {
+      const satECEF = sat.positionECEF
+
+      if (isSatelliteVisibleFromGroundStation(satECEF, gsECEF, 25)) {
+        lineShaders.setGeometry([
+          MathUtils.vecmul(gsECEF, 0.001),
+          MathUtils.vecmul(satECEF, 0.001),
+        ])
+        //lineShaders.setColor([255, 255, 255]) // White line
+        lineShaders.draw(matrix)
+      }
+    }
+  }
+
+  // Drawing satellites
   let rotMatrixTeme
-  if (enableList) {
+  if (!enableList) {
     // Performance : It is significantly faster to perform the J2000->ECEF coordinate
     // transformation in the vertex shader:
     rotMatrixTeme = createRotMatrix(today, JD, JT, nutPar)
