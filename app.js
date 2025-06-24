@@ -407,32 +407,63 @@ function drawScene(time) {
 
   // For satellite visibility with ground stations angle and visibilty calculation.
 
-  const satECEFList = []
-
-  for (let i = 0; i < osvSatListTeme.length; i++) {
-    const osvJ2000 = osvSatListTeme[i]
-    const osvECEF = Frames.osvJ2000ToECEF(osvJ2000, nutPar)
-    satECEFList.push({
-      name: satIndexToName[i],
-      positionECEF: osvECEF.r,
-    })
+  // Step: Convert all satellite TEME to ECEF (don't mutate shared state)
+  // ================== Compute Satellite ECEF List ==================
+  let rotationMatrix = matrix // Default: no extra transform
+  if (guiControls.frame !== 'J2000') {
+    const rotMatrixTeme = createRotMatrix(today, JD, JT, nutPar)
+    rotationMatrix = m4.multiply(matrix, m4.transpose(rotMatrixTeme))
   }
 
-  for (let gs of groundStations) {
+  // ----------- STEP 2: Construct line segments from GS to Satellite ------------
+  // These will be added to a single Float32Array and sent to lineShaders
+  const visibleLines = [] // [gs_x, gs_y, gs_z, sat_x, sat_y, sat_z, ....]
+
+  for (let gs of uploadedGroundStations) {
     const gsECEF = gs.positionECEF
+    if (!gsECEF) continue
 
-    for (let sat of satECEFList) {
+    for (let sat of satObjects) {
       const satECEF = sat.positionECEF
+      if (!satECEF) continue
 
-      if (isSatelliteVisibleFromGroundStation(satECEF, gsECEF, 25)) {
-        lineShaders.setGeometry([
-          MathUtils.vecmul(gsECEF, 0.001),
-          MathUtils.vecmul(satECEF, 0.001),
-        ])
-        //lineShaders.setColor([255, 255, 255]) // White line
-        lineShaders.draw(matrix)
+      // ------------- STEP 2.1: Elevation Angle Filter -------------
+      const unitGS = MathUtils.vecmul(gsECEF, 1 / MathUtils.norm(gsECEF))
+      const toSat = MathUtils.vecsub(satECEF, gsECEF)
+      const unitToSat = MathUtils.vecmul(toSat, 1 / MathUtils.norm(toSat))
+      const dot = MathUtils.dot(unitGS, unitToSat)
+      const elevationDeg = Math.asin(dot) * (180 / Math.PI)
+
+      if (elevationDeg > 25) {
+        // ------------- STEP 2.2: Apply rendering matrix transformation -------------
+        const gsPoint = [...gsECEF, 1.0] // Homogeneous coords
+        const satPoint = [...satECEF, 1.0]
+
+        const gsTransformed = m4.transformPoint(rotationMatrix, gsPoint)
+        const satTransformed = m4.transformPoint(rotationMatrix, satPoint)
+
+        // Optional scale (since Earth is rendered small)
+        const scaledGS = MathUtils.vecmul(gsTransformed.slice(0, 3), 0.001)
+        const scaledSAT = MathUtils.vecmul(satTransformed.slice(0, 3), 0.001)
+
+        // Append line segment to visible list
+        visibleLines.push(...scaledGS, ...scaledSAT)
       }
     }
+  }
+
+  // ----------- STEP 3: Render the line segments ------------
+  // Only draw if there are lines
+  if (visibleLines.length > 0) {
+    lineShaders.setGeometry(visibleLines)
+    lineShaders.draw(matrix)
+  }
+
+  // ----------- STEP 3: Render the line segments ------------
+  // Only draw if there are lines
+  if (visibleLines.length > 0) {
+    lineShaders.setGeometry(visibleLines)
+    lineShaders.draw(matrix)
   }
 
   // Drawing satellites
