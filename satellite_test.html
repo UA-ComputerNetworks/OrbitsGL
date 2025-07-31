@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Satellite.js Isolated Test</title>
+  </head>
+  <body>
+    <h1>Satellite.js Isolated Test</h1>
+    <p>Please open the Developer Console (F12) to see the test results.</p>
+
+    <script src="https://cdn.jsdelivr.net/npm/satellite.js@4.1.4/dist/satellite.min.js"></script>
+
+    <script>
+      console.log(
+        '--- Running Perfect Satellite Visibility Test in ISOLATED FILE---'
+      )
+
+      // Step 1: Define a single ground station (Los Angeles)
+      const observerGd = {
+        longitude: satellite.degreesToRadians(-118.2437), // Lon in radians
+        latitude: satellite.degreesToRadians(34.0522), // Lat in radians
+        height: 0.089, // Height in km
+      }
+      console.log('Observer Geodetic:', observerGd)
+
+      // Step 2: Create a FAKE satellite positioned directly overhead
+      const fakeSatGeodetic = {
+        longitude: observerGd.longitude,
+        latitude: observerGd.latitude,
+        height: 400, // A typical LEO altitude in km
+      }
+      console.log('Fake Satellite Geodetic:', fakeSatGeodetic)
+
+      // Step 3: Convert both to ECEF coordinates
+      const observerEcf = satellite.geodeticToEcf(observerGd)
+      const fakeSatEcf = satellite.geodeticToEcf(fakeSatGeodetic)
+
+      console.log('Observer ECF (X,Y,Z):', observerEcf)
+      console.log('Fake Satellite ECF (X,Y,Z):', fakeSatEcf)
+
+      // Step 4: Calculate the look angles.
+      const lookAngles = satellite.ecfToLookAngles(observerEcf, fakeSatEcf)
+
+      // Step 5: Convert to degrees and check the results
+      console.log('--- TEST RESULTS ---')
+      const elevationInDegrees = satellite.radiansToDegrees(
+        lookAngles.elevation
+      )
+      const azimuthInDegrees = satellite.radiansToDegrees(lookAngles.azimuth)
+
+      console.log('Calculated Azimuth (degrees):', azimuthInDegrees)
+      console.log('Calculated Elevation (degrees):', elevationInDegrees)
+      console.log('Calculated Range (km):', lookAngles.range)
+
+      // Step 6: Perform the final check
+      console.log('--- FINAL VERDICT ---')
+      const minimumElevation = 10.0 // Your visibility threshold in degrees.
+      const isVisible = elevationInDegrees > minimumElevation
+
+      console.log(`Is elevation > ${minimumElevation} degrees?`, isVisible)
+
+      if (isVisible) {
+        console.log(
+          '✅ TEST PASSED: Visibility logic correctly identified the overhead satellite.'
+        )
+      } else {
+        console.log(
+          '❌ TEST FAILED: Visibility logic FAILED to see a satellite that is directly overhead.'
+        )
+        console.error('DEBUG INFO: The lookAngles object was:', lookAngles)
+      }
+    </script>
+  </body>
+</html>

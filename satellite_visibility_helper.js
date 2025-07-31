@@ -1,15 +1,20 @@
-function isSatelliteVisibleFromGroundStation(
-  satECEF,
-  gsECEF,
-  minElevationDeg = 25
-) {
-  const unitGS = MathUtils.vecmul(gsECEF, 1 / MathUtils.norm(gsECEF))
-  const toSat = MathUtils.vecsub(satECEF, gsECEF)
-  const unitToSat = MathUtils.vecmul(toSat, 1 / MathUtils.norm(toSat))
+/**
+ * Checks if a satellite is visible from a ground station based on a minimum elevation angle.
+ *
+ * @param {Array} satECEF The ECEF position of the satellite.
+ * @param {Array} gsECEF The ECEF position of the ground station.
+ * @param {number} minElevation The minimum elevation angle in degrees.
+ * @returns {boolean} True if the satellite is visible, false otherwise.
+ */
+function isSatelliteVisibleFromGroundStation(satECEF, gsECEF, minElevation) {
+  const toSatellite = MathUtils.vecsub(satECEF, gsECEF)
+  const up = gsECEF
 
-  const dot = MathUtils.dot(unitGS, unitToSat)
-  const elevationRad = Math.asin(dot)
-  const elevationDeg = elevationRad * (180 / Math.PI)
+  const dotProduct = MathUtils.dot(toSatellite, up)
+  const cosAngle =
+    dotProduct / (MathUtils.norm(toSatellite) * MathUtils.norm(up))
+  const angle = Math.acos(cosAngle)
+  const elevation = 90 - MathUtils.rad2Deg(angle)
 
-  return elevationDeg > minElevationDeg
+  return elevation >= minElevation
 }
