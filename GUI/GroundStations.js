@@ -215,3 +215,33 @@ function drawUploadedGroundStationsCustom(matrix, nutPar, today) {
     earthShaders.draw(stationMatrix, 0, 0, LST, false, false, false, color)
   })
 }
+
+// GroundStations.js for Calculating elevation btw satellite and groundstation.
+
+function calculateElevation(stationECEF, satelliteECEF, stationName, satName) {
+  log(`[calculateElevation] For Station: "${stationName}" -> Sat: "${satName}"`)
+  const losVector = MathUtils.vecsub(satelliteECEF, stationECEF)
+  const upVector = stationECEF
+  const lineOfSightUnit = MathUtils.vecmul(
+    losVector,
+    1 / MathUtils.norm(losVector)
+  )
+  const upUnit = MathUtils.vecmul(upVector, 1 / MathUtils.norm(upVector))
+  if (isNaN(lineOfSightUnit[0])) {
+    return NaN
+  }
+  const sinElevation = MathUtils.dot(upUnit, lineOfSightUnit)
+  const elevationDeg = MathUtils.rad2Deg(Math.asin(sinElevation))
+  log(
+    `[calculateElevation]   - Station ECEF(km): [${stationECEF
+      .map((c) => c.toFixed(2))
+      .join(', ')}]`
+  )
+  log(
+    `[calculateElevation]   - Sat ECEF(km): [${satelliteECEF
+      .map((c) => c.toFixed(2))
+      .join(', ')}]`
+  )
+  log(`[calculateElevation]   - Result: ${elevationDeg.toFixed(4)}°`)
+  return elevationDeg
+}

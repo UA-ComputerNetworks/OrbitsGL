@@ -291,6 +291,35 @@ function createControls() {
     this.createTLEOSV = function () {
       createTLEOSV()
     }
+
+    // This creates the functions that the buttons will call.
+    this.enableVerboseLogging = true
+    this.downloadLogFile = function () {
+      if (logBuffer.length === 0) {
+        alert(
+          'Log buffer is empty. Enable verbose logging first to capture data.'
+        )
+        return
+      }
+      const logData = logBuffer.join('\r\n')
+      const blob = new Blob([logData], { type: 'text/plain' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `orbitsgl_log_${new Date()
+        .toISOString()
+        .replace(/:/g, '-')}.txt`
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+      logBuffer = []
+      alert(`Log file downloaded. The log buffer has been cleared.`)
+    }
+    this.clearLogBuffer = function () {
+      logBuffer = []
+      alert('Log buffer cleared.')
+    }
   })()
 
   gui = new dat.GUI({ width: 250 }) // Adjust the width as needed
@@ -765,6 +794,25 @@ function createControls() {
   // Reset button
 
   gui.add({ resetAllData }, 'resetAllData').name('Reset All Data')
+
+  // Logging function.
+
+  // This adds the actual visible buttons to a new panel in the GUI.
+  const loggingFolder = gui.addFolder('Debugging & Logging')
+  loggingFolder
+    .add(guiControls, 'enableVerboseLogging')
+    .name('Enable Verbose Logging')
+    .onChange((value) => {
+      isLoggingEnabled = value
+      if (value) {
+        console.log('Verbose logging has been ENABLED.')
+      } else {
+        console.log('Verbose logging has been DISABLED.')
+      }
+    })
+  loggingFolder.add(guiControls, 'downloadLogFile').name('Download Log File')
+  loggingFolder.add(guiControls, 'clearLogBuffer').name('Clear Log Buffer')
+  loggingFolder.open()
 }
 
 // Reset all the data.

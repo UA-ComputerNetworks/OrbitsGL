@@ -94,6 +94,26 @@ window.onload = () => {
   loadConfigurationFile('config.txt')
 }
 
+// app.js
+
+// ... (after 'use strict' and initial var declarations)
+
+let logBuffer = [] // Global buffer to store log messages in memory
+let isLoggingEnabled = false // This will be controlled by the new GUI toggle
+
+/**
+ * [Logger] A centralized function to handle logging.
+ * If logging is enabled, it adds a timestamped message to the logBuffer.
+ *
+ * @param {string} message The log message.
+ */
+function log(message) {
+  if (isLoggingEnabled) {
+    const timestamp = new Date().toISOString()
+    logBuffer.push(`[${timestamp}] ${message}`)
+  }
+}
+
 // Draw the scene.
 function drawScene(time) {
   if (earthShaders.numTextures < 2) {
@@ -479,25 +499,11 @@ function drawScene(time) {
     station.positionECEF = latLonToECEF(station.lat, station.lon, station.alt)
   })
 
-  //drawGroundStationsCustom(matrix, nutPar, today)
-  // After drawing built-in ground stations
-
-  // const cameraPos = [
-  //   1000 *
-  //     guiControls.distance *
-  //     MathUtils.cosd(guiControls.lat) *
-  //     MathUtils.cosd(guiControls.lon),
-  //   1000 *
-  //     guiControls.distance *
-  //     MathUtils.cosd(guiControls.lat) *
-  //     MathUtils.sind(guiControls.lon),
-  //   1000 * guiControls.distance * MathUtils.sind(guiControls.lat),
-  // ]
-
   drawUploadedGroundStations(matrix, nutPar, today)
   //drawUploadedGroundStations(matrix, viewMatrix, nutPar, today)
 
   drawUploadedGroundStationsCustom(matrix, nutPar, today)
+  drawGroundToSatelliteLinks(matrix, nutPar, today)
 
   drawing = false
 }
@@ -957,7 +963,7 @@ function createOsvForSatellite(satellite, today) {
     return
   }
 
-  console.log(`satrec is:`, satellite.satrec)
+  //console.log(`satrec is:`, satellite.satrec)
   try {
     const osvTeme = sgp4.propagateTargetTs(satellite.satrec, today, 0.0)
     const osvJ2000 = sgp4.coordTemeJ2000(osvTeme)
@@ -976,7 +982,7 @@ function createOsvForSatellite(satellite, today) {
       ts: today,
     }
 
-    console.log(`OSV computed for ${satellite.name}:`, satellite.osvProp)
+    //console.log(`OSV computed for ${satellite.name}:`, satellite.osvProp)
 
     // Create Keplerian parameters from OSV
     const keplerParams = Kepler.osvToKepler(
@@ -987,7 +993,7 @@ function createOsvForSatellite(satellite, today) {
 
     satellite.kepler = keplerParams
 
-    console.log(`Kepler parameters for ${satellite.name}:`, satellite.kepler)
+    //console.log(`Kepler parameters for ${satellite.name}:`, satellite.kepler)
   } catch (error) {
     console.error(
       `Error in createOsvForSatellite for ${satellite.name}:`,
@@ -1015,10 +1021,10 @@ function drawOrbit(today, satellite, matrix, nutPar) {
     return
   }
 
-  console.log(
-    `Drawing orbit for ${satellite.name} with Kepler parameters`,
-    satellite.kepler
-  )
+  // console.log(
+  //   `Drawing orbit for ${satellite.name} with Kepler parameters`,
+  //   satellite.kepler
+  // )
 
   let p = []
   const period = Kepler.computePeriod(satellite.kepler.a, satellite.kepler.mu)
@@ -1060,7 +1066,7 @@ function drawOrbit(today, satellite, matrix, nutPar) {
     }
   }
 
-  console.log(`Orbit points for ${satellite.name}:`, p)
+  //console.log(`Orbit points for ${satellite.name}:`, p)
   const color = [255, 255, 255] // Blue for ISL lines
   lineShaders.setGeometry(p, color)
   lineShaders.draw(matrix)
@@ -1219,7 +1225,7 @@ function createOsvForISLSatellite(satellite, today) {
       ts: new Date(today), // Ensure the timestamp is set with a valid Date object
     }
 
-    console.log(`ISL OSV computed for ${satellite.name}:`, satellite.osvProp)
+    //console.log(`ISL OSV computed for ${satellite.name}:`, satellite.osvProp)
   } catch (error) {
     console.error(
       `Error in createOsvForISLSatellite for ${satellite.name}:`,
@@ -1243,8 +1249,8 @@ function createOsvForISLSatellite(satellite, today) {
  *      The current timestamp for visualization.
  */
 function drawShortestPath(matrix, nutPar, satelliteIds, today) {
-  console.log(`Visualizing shortest path for satellites:`, satelliteIds)
-  console.log(`Today:`, today)
+  // console.log(`Visualizing shortest path for satellites:`, satelliteIds)
+  // console.log(`Today:`, today)
 
   const highlightColor1 = [255, 255, 0] // Green for one end
   const satelliteScale = 0.01 // Scale to avoid oversized satellites
@@ -1254,38 +1260,38 @@ function drawShortestPath(matrix, nutPar, satelliteIds, today) {
     const sat1Name = satelliteIds[i] // Treat IDs as names
     const sat2Name = satelliteIds[i + 1]
 
-    console.log(`Processing path segment between ${sat1Name} and ${sat2Name}`)
+    //console.log(`Processing path segment between ${sat1Name} and ${sat2Name}`)
 
     const sat1 = satelliteObjects[sat1Name] // Get satellite by name
     const sat2 = satelliteObjects[sat2Name]
 
     if (!sat1) {
-      console.warn(`Satellite ${sat1Name} not found in satelliteObjects`)
+      //console.warn(`Satellite ${sat1Name} not found in satelliteObjects`)
     } else {
-      console.log(`Satellite ${sat1Name} found. OSV:`, sat1.osvProp)
+      //console.log(`Satellite ${sat1Name} found. OSV:`, sat1.osvProp)
     }
 
     if (!sat2) {
-      console.warn(`Satellite ${sat2Name} not found in satelliteObjects`)
+      //console.warn(`Satellite ${sat2Name} not found in satelliteObjects`)
     } else {
-      console.log(`Satellite ${sat2Name} found. OSV:`, sat2.osvProp)
+      //console.log(`Satellite ${sat2Name} found. OSV:`, sat2.osvProp)
     }
 
     createOsvForISLSatellite(sat1, today)
     createOsvForISLSatellite(sat2, today)
 
     if (sat1 && sat2 && sat1.osvProp && sat2.osvProp) {
-      console.log(`Both satellites have OSVs. Drawing segment.`)
+      //console.log(`Both satellites have OSVs. Drawing segment.`)
       drawSatellite(sat1, matrix, nutPar, highlightColor1, satelliteScale)
       drawSatellite(sat2, matrix, nutPar, highlightColor1, satelliteScale)
 
       const osv1 = Frames.osvJ2000ToECEF(sat1.osvProp, nutPar)
       const osv2 = Frames.osvJ2000ToECEF(sat2.osvProp, nutPar)
 
-      console.log(`Converted OSVs to ECEF for ${sat1Name} and ${sat2Name}:`, {
-        osv1,
-        osv2,
-      })
+      // console.log(`Converted OSVs to ECEF for ${sat1Name} and ${sat2Name}:`, {
+      //   osv1,
+      //   osv2,
+      // })
 
       const [x1, y1, z1] = MathUtils.vecmul(osv1.r, 0.001)
       const [x2, y2, z2] = MathUtils.vecmul(osv2.r, 0.001)
@@ -1300,9 +1306,9 @@ function drawShortestPath(matrix, nutPar, satelliteIds, today) {
       lineShaders.setGeometry(linePoints, color)
       lineShaders.draw(matrix)
 
-      console.log(
-        `Successfully drew path segment between ${sat1Name} and ${sat2Name}`
-      )
+      // console.log(
+      //   `Successfully drew path segment between ${sat1Name} and ${sat2Name}`
+      // )
     } else {
       console.warn(
         `Path not drawn: Missing propagated data for ${sat1Name} or ${sat2Name}`
