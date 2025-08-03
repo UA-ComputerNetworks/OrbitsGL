@@ -99,7 +99,7 @@ window.onload = () => {
 // ... (after 'use strict' and initial var declarations)
 
 let logBuffer = [] // Global buffer to store log messages in memory
-let isLoggingEnabled = false // This will be controlled by the new GUI toggle
+let isLoggingEnabled = false // This will be controlled by the new GUI toggle. change it with controls this.enableverboselogging.
 
 /**
  * [Logger] A centralized function to handle logging.
@@ -1452,13 +1452,12 @@ function drawSatelliteCaption2(satellite, matrix, nutPar, cameraPos) {
  * @param {object} nutPar - Nutation parameters for coordinate transformations.
  * @param {Date} today - The current simulation timestamp.
  */
+// In app.js
+/**
+ * [drawGroundToSatelliteLinks] Draws lines from ground stations to visible satellites
+ * if they meet the elevation criteria. (Final Version)
+ */
 function drawGroundToSatelliteLinks(matrix, nutPar, today) {
-  // ==> ADD THIS LINE FOR DEBUGGING
-  console.log(
-    `Data Check - Stations: ${
-      uploadedGroundStations?.length || 0
-    }, Satellites: ${Object.keys(satelliteObjects)?.length || 0}`
-  )
   if (
     !uploadedGroundStations ||
     uploadedGroundStations.length === 0 ||
@@ -1466,10 +1465,12 @@ function drawGroundToSatelliteLinks(matrix, nutPar, today) {
   ) {
     return
   }
-  const elevationThreshold = 25
+
+  const elevationThreshold = 25 // The real threshold for drawing lines
   const linkColor = [0, 255, 255]
   const linkWidth = 1.5
 
+  // This log will confirm the function is running each frame.
   log(
     `[drawGroundToSatelliteLinks] Frame update. Checking ${
       uploadedGroundStations.length
@@ -1480,17 +1481,11 @@ function drawGroundToSatelliteLinks(matrix, nutPar, today) {
     if (!station.positionECEF) return
 
     Object.values(satelliteObjects).forEach((satellite) => {
-      // ===================================================================
-      // ==> THIS IS THE CRITICAL FIX <==
-      // We must propagate the satellite's position to the current simulation time.
       createOsvForISLSatellite(satellite, today)
-      // ===================================================================
 
-      // Now, check if the propagation was successful before proceeding.
       if (!satellite.osvProp || !satellite.osvProp.r) {
-        // This log will now appear if a satellite fails to update.
         log(
-          `[drawGroundToSatelliteLinks] SKIPPING ${satellite.name}: No OSV data after propagation attempt.`
+          `[drawGroundToSatelliteLinks] SKIPPING ${satellite.name}: No OSV data.`
         )
         return
       }
@@ -1499,21 +1494,22 @@ function drawGroundToSatelliteLinks(matrix, nutPar, today) {
       const stationPositionKm = station.positionECEF
       const satellitePositionKm = MathUtils.vecmul(satOsvECEF.r, 0.001)
 
+      // This will calculate and log the elevation for EVERY satellite.
       const elevation = calculateElevation(
         stationPositionKm,
         satellitePositionKm,
         station.name,
         satellite.name
       )
-      console.log('Elevation angle is ')
-      console.log('Elevation angle is ', elevation)
 
+      // This block will only execute for the few satellites that meet the high-elevation criteria.
       if (!isNaN(elevation) && elevation > elevationThreshold) {
         log(
-          `[drawGroundToSatelliteLinks] SUCCESS: Link condition met for "${
+          `[drawGroundToSatelliteLinks] SUCCESS: Link DRAWN for "${
             station.name
           }" -> "${satellite.name}" (Elevation: ${elevation.toFixed(2)}°)`
         )
+
         const linePoints = [stationPositionKm, satellitePositionKm]
         lineShaders.setGeometry(linePoints, linkColor)
         lineShaders.setStyle(linkWidth, 'solid')

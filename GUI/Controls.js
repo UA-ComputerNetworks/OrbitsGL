@@ -293,7 +293,7 @@ function createControls() {
     }
 
     // This creates the functions that the buttons will call.
-    this.enableVerboseLogging = true
+    this.enableVerboseLogging = false
     this.downloadLogFile = function () {
       if (logBuffer.length === 0) {
         alert(
