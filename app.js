@@ -399,6 +399,9 @@ function drawScene(time) {
   //const { viewMatrix } = getViewAndProjectionMatrix()
   drawEarth(matrix, rASun, declSun, LST, JT, nutPar)
 
+  // 🚨 CRITICAL FIX: Update ECEF positions for all satellites (required by shortest path logic)
+  updateAllSatelliteECEF(today, nutPar)
+
   // Draw selected satellites selected from Select TLE.
   selectedSatellites.forEach((satellite) => {
     createOsvForSatellite(satellite, today)
@@ -1517,4 +1520,41 @@ function drawGroundToSatelliteLinks(matrix, nutPar, today) {
       }
     })
   })
+}
+
+/**
+ * Propagates and updates the ECEF position for ALL satellites in satelliteObjects.
+ * This is crucial for dynamic link detection (ISL/SGL) used in pathfinding.
+ *
+ * @param {Date} today - Current simulation time.
+ * @param {Object} nutPar - Nutation parameters.
+ */
+function updateAllSatelliteECEF(today, nutPar) {
+  if (!satelliteObjects) return
+
+  for (const name in satelliteObjects) {
+    const satellite = satelliteObjects[name]
+    if (!satellite.satrec) continue
+
+    try {
+      // 1. Propagate from TLE (TEME frame)
+      const osvTeme = sgp4.propagateTargetTs(satellite.satrec, today, 0.0)
+      const osvJ2000 = sgp4.coordTemeJ2000(osvTeme)
+
+      // Store OSV in meters
+      satellite.osvProp = {
+        r: MathUtils.vecmul(osvJ2000.r, 1000.0), // km -> m
+        v: MathUtils.vecmul(osvJ2000.v, 1000.0), // km/s -> m/s
+        ts: today,
+      }
+
+      // 2. Convert J2000 (meters) to ECEF (meters)
+      const osv_ECEF_m = Frames.osvJ2000ToECEF(satellite.osvProp, nutPar)
+
+      // 3. Store ECEF in KILOMETERS (as expected by New_shortest_path.js)
+      satellite.r_ECEF = MathUtils.vecmul(osv_ECEF_m.r, 0.001)
+    } catch (error) {
+      log(`[ERROR: ECEF Update] Failed for ${name}: ${error.message}`)
+    }
+  }
 }
