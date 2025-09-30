@@ -1,5 +1,5 @@
 // ===================================
-// New_shortest_path.js - Dynamic Pathfinding Logic
+// New_shortest_path.js - Dynamic Pathfinding Logic (DEBUG VERSION)
 //
 // This file implements the core logic for dynamic shortest path routing
 // using Dijkstra's algorithm with a Min-Priority Queue.
@@ -18,19 +18,34 @@ let shortestPathData = {
 const EARTH_RADIUS_KM = 6378.137
 const SPEED_OF_LIGHT_KM_S = 299792.458
 
+console.log(
+  '[DEBUG: Constants] Earth Radius:',
+  EARTH_RADIUS_KM,
+  'km | Speed of Light:',
+  SPEED_OF_LIGHT_KM_S,
+  'km/s'
+)
+
 // ===================================
 // 1. Min-Priority Queue Implementation (Essential for Dijkstra's)
 // ===================================
 
 class PriorityQueue {
   constructor() {
-    // Array of objects: [{id: 'nodeId', priority: distance}]
     this.values = []
+    console.log('[DEBUG: PQ] Priority Queue initialized.')
   }
 
   enqueue(id, priority) {
+    if (isNaN(priority)) {
+      console.error(
+        `[DEBUG: PQ ERROR] Attempted to enqueue node ${id} with NaN priority!`
+      )
+      return
+    }
     this.values.push({ id, priority })
     this.bubbleUp()
+    // console.log(`[DEBUG: PQ] Enqueued ${id} with priority ${priority.toFixed(4)}.`);
   }
 
   bubbleUp() {
@@ -47,12 +62,17 @@ class PriorityQueue {
   }
 
   dequeue() {
+    if (this.values.length === 0) {
+      console.warn('[DEBUG: PQ] Attempted to dequeue from an empty queue.')
+      return null
+    }
     const min = this.values[0]
     const end = this.values.pop()
     if (this.values.length > 0) {
       this.values[0] = end
       this.sinkDown()
     }
+    // console.log(`[DEBUG: PQ] Dequeued ${min.id} with priority ${min.priority.toFixed(4)}.`);
     return min
   }
 
@@ -95,8 +115,7 @@ class PriorityQueue {
 }
 
 // ===================================
-// 2. Geometric Utility Functions
-// (Assumed available globally, defining placeholders for clarity)
+// 2. Geometric Utility Functions (Enhanced ECEF/NaN Checking)
 // ===================================
 
 /**
@@ -106,28 +125,71 @@ class PriorityQueue {
  * @returns {number} Distance in km.
  */
 function calculateDistance(posA_ECEF, posB_ECEF) {
+  if (
+    !Array.isArray(posA_ECEF) ||
+    posA_ECEF.length !== 3 ||
+    posA_ECEF.some(isNaN)
+  ) {
+    console.error('[DEBUG: DISTANCE ERROR] Invalid posA_ECEF:', posA_ECEF)
+    return Infinity
+  }
+  if (
+    !Array.isArray(posB_ECEF) ||
+    posB_ECEF.length !== 3 ||
+    posB_ECEF.some(isNaN)
+  ) {
+    console.error('[DEBUG: DISTANCE ERROR] Invalid posB_ECEF:', posB_ECEF)
+    return Infinity
+  }
+
   // Assuming MathUtils.vecsub and MathUtils.norm are available globally
   if (
-    typeof MathUtils === 'undefined' ||
-    typeof MathUtils.vecsub === 'undefined'
+    typeof MathUtils !== 'undefined' &&
+    typeof MathUtils.vecsub !== 'undefined' &&
+    typeof MathUtils.norm !== 'undefined'
   ) {
-    const dx = posA_ECEF[0] - posB_ECEF[0]
-    const dy = posA_ECEF[1] - posB_ECEF[1]
-    const dz = posA_ECEF[2] - posB_ECEF[2]
-    return Math.sqrt(dx * dx + dy * dy + dz * dz)
+    const distance = MathUtils.norm(MathUtils.vecsub(posA_ECEF, posB_ECEF))
+    // console.log(`[DEBUG: DISTANCE] Calculated distance using MathUtils: ${distance.toFixed(2)} km`)
+    return distance
   }
-  return MathUtils.norm(MathUtils.vecsub(posA_ECEF, posB_ECEF))
+
+  const dx = posA_ECEF[0] - posB_ECEF[0]
+  const dy = posA_ECEF[1] - posB_ECEF[1]
+  const dz = posA_ECEF[2] - posB_ECEF[2]
+  const distance = Math.sqrt(dx * dx + dy * dy + dz * dz)
+
+  // console.log(`[DEBUG: DISTANCE] Calculated distance (fallback): ${distance.toFixed(2)} km`)
+  return distance
 }
 
 /**
  * Simplified Earth Occlusion Test for ISLs.
- * Checks if the line segment between two ECEF points (A and B) intersects the Earth sphere.
- * Note: A rigorous LEO simulation requires checking against the WGS84 ellipsoid.
  * @param {number[]} posA_ECEF - [x, y, z] in km.
  * @param {number[]} posB_ECEF - [x, y, z] in km.
  * @returns {boolean} True if occluded (intersects Earth), false otherwise.
  */
 function checkEarthOcclusion(posA_ECEF, posB_ECEF) {
+  // CRITICAL CHECK: Ensure MathUtils is available for vector/dot products
+  if (
+    typeof MathUtils === 'undefined' ||
+    typeof MathUtils.vecsub === 'undefined' ||
+    typeof MathUtils.dot === 'undefined'
+  ) {
+    console.error(
+      '[DEBUG: OCCLUSION ERROR] MathUtils library is missing! Cannot perform occlusion check.'
+    )
+    // Default to 'not occluded' if the check cannot be performed, allowing graph creation
+    return false
+  }
+
+  // Input validation for ECEF positions
+  if (posA_ECEF.some(isNaN) || posB_ECEF.some(isNaN)) {
+    console.warn(
+      '[DEBUG: OCCLUSION WARNING] One or both ECEF positions contain NaN. Assuming occluded.'
+    )
+    return true
+  }
+
   // Vector from A to B
   const d = MathUtils.vecsub(posB_ECEF, posA_ECEF)
   // Squared magnitude of d
@@ -137,195 +199,248 @@ function checkEarthOcclusion(posA_ECEF, posB_ECEF) {
   // d dot a
   const d_dot_a = MathUtils.dot(d, a)
   // a dot a - R^2
-  const a_dot_a_minus_R2 =
-    MathUtils.dot(a, a) - EARTH_RADIUS_KM * EARTH_RADIUS_KM
+  const R_sq = EARTH_RADIUS_KM * EARTH_RADIUS_KM
+  const a_dot_a_minus_R2 = MathUtils.dot(a, a) - R_sq
 
   // Solve the quadratic equation for t: (d.d)t^2 + 2(d.a)t + (a.a - R^2) = 0
   const discriminant = d_dot_a * d_dot_a - d_dot_d * a_dot_a_minus_R2
 
   if (discriminant < 0) {
-    // No real intersection, link is clear.
+    // console.log('[DEBUG: OCCLUSION] Discriminant < 0. No real intersection. Clear.')
     return false
   }
 
   const sqrt_discriminant = Math.sqrt(discriminant)
 
+  // CRITICAL CHECK: If d_dot_d is close to zero (A and B are same location)
+  if (Math.abs(d_dot_d) < 1e-6) {
+    console.warn(
+      '[DEBUG: OCCLUSION WARNING] Distance between A and B is zero. Assuming clear (or same node).'
+    )
+    return false
+  }
+
   // t1 and t2 are intersection parameters along the line (not segment)
   const t1 = (-d_dot_a - sqrt_discriminant) / d_dot_d
   const t2 = (-d_dot_a + sqrt_discriminant) / d_dot_d
 
-  // Link is occluded if an intersection point falls within the segment (0 < t < 1)
-  // We only need to check the closest intersection point t1.
-  if (t1 > 0 && t1 < 1) {
-    return true // Closest intersection is in front of A and before B
+  // Check if either intersection point falls within the segment (0 < t < 1)
+  const isOccluded = (t1 > 0 && t1 < 1) || (t2 > 0 && t2 < 1)
+
+  if (isOccluded) {
+    // console.log(`[DEBUG: OCCLUSION] Blocked! t1: ${t1.toFixed(3)}, t2: ${t2.toFixed(3)}.`)
+    return true
   }
 
-  // If t1 is <= 0 but t2 is between 0 and 1, it means A is inside the Earth
-  // (which should not happen for a satellite).
-  // If the segment [A, B] fully contains the Earth, both t1 and t2 would be between 0 and 1,
-  // but since LEO satellites are above the surface, we usually just check if a root exists
-  // within the segment.
-  if (t1 < 0 && t2 > 0 && t2 < 1) {
-    // This case implies A or B is inside Earth, which is geometrically unlikely for LEO.
-    // Given the segment [0, 1], if t1 < 0 and t2 > 0, the Earth is behind A (or A is inside).
-    // Let's rely on t1 > 0 && t1 < 1 for the segment check.
-    return false
-  }
-
+  // console.log(`[DEBUG: OCCLUSION] Clear. t1: ${t1.toFixed(3)}, t2: ${t2.toFixed(3)}.`)
   return false
 }
 
 // Note: calculateElevation is assumed to be available from GroundStations.js
 
 // ===================================
-// 3. Graph Construction
+// 3. Graph Construction (Detailed Debugging)
 // ===================================
 
 /**
  * Builds the dynamic adjacency list (graph) based on current satellite/GS positions and constraints.
- * @param {Date} currentTime - The current simulation time for propagation.
- * @returns {Map<string, {target: string, weight: number}[]>} The Adjacency List.
  */
 function buildDynamicAdjacencyList(currentTime) {
+  console.log(
+    `[DEBUG: Graph] Starting graph construction at time: ${currentTime.toISOString()}`
+  )
+
   if (
     typeof satelliteObjects === 'undefined' ||
     typeof uploadedGroundStations === 'undefined'
   ) {
     console.error(
-      'Satellite or Ground Station data not available for graph building.'
+      '[DEBUG: Graph ERROR] Satellite or Ground Station data not available for graph building.'
     )
     return new Map()
   }
 
   const AdjList = new Map()
-  const allNodes = []
-
-  // --- 1. Collect and Prepare Nodes (Satellites & GS) ---
-
-  // Get current ECEF positions for all satellites (assumes they are propagated outside this function)
   const satellites = Object.values(satelliteObjects)
 
-  // Initialize nodes in the Adjacency List
+  console.log(
+    `[DEBUG: Graph] Found ${satellites.length} satellites and ${uploadedGroundStations.length} ground stations.`
+  )
+
+  // --- 1. Collect and Prepare Nodes (Satellites & GS) ---
   satellites.forEach((sat) => {
-    allNodes.push(sat.name)
     AdjList.set(sat.name, [])
+    // CRITICAL CHECK: Log if ECEF is missing/invalid
+    if (!sat.r_ECEF || sat.r_ECEF.some(isNaN)) {
+      console.warn(
+        `[DEBUG: Node Check] Satellite ${sat.name} has invalid or missing r_ECEF position.`
+      )
+    }
   })
   uploadedGroundStations.forEach((gs) => {
-    allNodes.push(gs.name)
     AdjList.set(gs.name, [])
   })
 
   // --- 2. Calculate ISLs (Inter-Satellite Links) ---
-  // This is the most computationally expensive part (O(V^2), ideally O(V*k)).
-  // For simplicity and general constellation support, we check all pairs here.
-  // Performance Note: For large constellations, this must be optimized to check only neighbors.
-
+  let islCount = 0
   for (let i = 0; i < satellites.length; i++) {
     const satA = satellites[i]
-    const posA_ECEF = satA.r_ECEF // Assumed to be updated in the main loop
+    const posA_ECEF = satA.r_ECEF
 
-    // Skip satellites without valid positions (r_ECEF should be in kilometers)
+    // Skip satellites without valid positions
     if (!posA_ECEF || posA_ECEF.some(isNaN)) {
-      console.warn(
-        `[DEBUG: Graph] Skipping Sat A: ${satA.name} due to invalid ECEF position.`
-      )
       continue
     }
 
     for (let j = i + 1; j < satellites.length; j++) {
       const satB = satellites[j]
-      const posB_ECEF = satB.r_ECEF // Assumed to be updated in the main loop
+      const posB_ECEF = satB.r_ECEF
 
-      console.log(`[DEBUG: ISL Check] Checking ${satA.name} <-> ${satB.name}`) // DEBUG 2
+      if (!posB_ECEF || posB_ECEF.some(isNaN)) {
+        // console.warn(`[DEBUG: ISL Check] Skipping Sat B: ${satB.name} due to invalid ECEF position.`)
+        continue
+      }
+
+      // console.log(`[DEBUG: ISL Check] Checking ${satA.name} <-> ${satB.name}`)
 
       if (!checkEarthOcclusion(posA_ECEF, posB_ECEF)) {
         // Link is clear (Line-of-Sight is established)
         const distance_km = calculateDistance(posA_ECEF, posB_ECEF)
-        // Latency in milliseconds (km / (km/s) * 1000)
+        if (distance_km === Infinity || distance_km <= 0) {
+          console.warn(
+            `[DEBUG: ISL WARNING] Calculated distance is invalid (${distance_km.toFixed(
+              2
+            )} km). Skipping link.`
+          )
+          continue
+        }
         const latency_ms = (distance_km / SPEED_OF_LIGHT_KM_S) * 1000
 
         console.log(
-          `[DEBUG: ISL Success] Link established! Distance: ${distance_km.toFixed(
+          `[DEBUG: ISL Success] ${satA.name} <-> ${
+            satB.name
+          } | Dist: ${distance_km.toFixed(
             2
-          )} km, Latency: ${latency_ms.toFixed(2)} ms`
-        ) // DEBUG 3
+          )} km | Latency: ${latency_ms.toFixed(2)} ms`
+        )
 
         // Add bidirectional link
         AdjList.get(satA.name).push({ target: satB.name, weight: latency_ms })
         AdjList.get(satB.name).push({ target: satA.name, weight: latency_ms })
+        islCount++
       } else {
-        console.log(
-          `[DEBUG: ISL Failure] Blocked by Earth Occlusion or out of range.`
-        ) // DEBUG 4
+        // console.log(
+        //   `[DEBUG: ISL Failure] ${satA.name} <-> ${satB.name} | Blocked by Earth Occlusion.`
+        // )
       }
     }
   }
+  console.log(
+    `[DEBUG: Graph] Total ISL links added: ${islCount * 2} (bidirectional).`
+  )
 
   // --- 3. Calculate SGLs (Satellite-Ground Links) ---
-  // O(V_GS * V_SAT) checks
+  const DEFAULT_MIN_ELEVATION_DEG = 10.0
+  let sglCount = 0
 
-  // Note: The OrbitsGL GS file format in the doc did not include Min_Elevation,
-  // but the architectural report (III.1.2) says it should.
-  const DEFAULT_MIN_ELEVATION_DEG = 10.0 // Default if not in GS data
+  if (typeof calculateElevation === 'undefined') {
+    console.error(
+      '[DEBUG: Graph ERROR] calculateElevation function is missing! SGL links will be skipped.'
+    )
+  } else {
+    for (const gs of uploadedGroundStations) {
+      const posGS_ECEF = gs.positionECEF // Already computed in GroundStations.js
 
-  for (const gs of uploadedGroundStations) {
-    const posGS_ECEF = gs.positionECEF // Already computed in GroundStations.js
-
-    // Find the minElevation property, defaulting if necessary
-    const minElevation = gs.minElevation || DEFAULT_MIN_ELEVATION_DEG
-
-    for (const sat of satellites) {
-      const posSat_ECEF = sat.r_ECEF // Assumed ECEF position in km
-
-      // Assumes 'calculateElevation' is available globally (from GroundStations.js)
-      if (typeof calculateElevation === 'undefined') {
-        console.error('calculateElevation function is missing!')
+      if (!posGS_ECEF || posGS_ECEF.some(isNaN)) {
+        console.warn(
+          `[DEBUG: SGL Check] Skipping GS ${gs.name} due to invalid ECEF position.`
+        )
         continue
       }
 
-      const elevation_angle = calculateElevation(
-        posGS_ECEF,
-        posSat_ECEF,
-        gs.name,
-        sat.name
-      )
+      const minElevation = gs.minElevation || DEFAULT_MIN_ELEVATION_DEG
 
-      if (elevation_angle >= minElevation) {
-        // Link is established (above minimum elevation angle)
-        const distance_km = calculateDistance(posGS_ECEF, posSat_ECEF)
-        const latency_ms = (distance_km / SPEED_OF_LIGHT_KM_S) * 1000
+      // console.log(`[DEBUG: SGL Check] Checking links for GS: ${gs.name} (Min Elev: ${minElevation} deg)`)
 
-        // Add bidirectional link
-        AdjList.get(gs.name).push({ target: sat.name, weight: latency_ms })
-        AdjList.get(sat.name).push({ target: gs.name, weight: latency_ms })
+      for (const sat of satellites) {
+        const posSat_ECEF = sat.r_ECEF
+
+        if (!posSat_ECEF || posSat_ECEF.some(isNaN)) {
+          // console.warn(`[DEBUG: SGL Check] Skipping Sat ${sat.name} due to invalid ECEF position.`)
+          continue
+        }
+
+        const elevation_angle = calculateElevation(
+          posGS_ECEF,
+          posSat_ECEF,
+          gs.name,
+          sat.name
+        )
+
+        if (elevation_angle >= minElevation) {
+          // Link is established (above minimum elevation angle)
+          const distance_km = calculateDistance(posGS_ECEF, posSat_ECEF)
+          if (distance_km === Infinity || distance_km <= 0) {
+            console.warn(
+              `[DEBUG: SGL WARNING] Calculated distance is invalid (${distance_km.toFixed(
+                2
+              )} km). Skipping link.`
+            )
+            continue
+          }
+          const latency_ms = (distance_km / SPEED_OF_LIGHT_KM_S) * 1000
+
+          console.log(
+            `[DEBUG: SGL Success] ${gs.name} <-> ${
+              sat.name
+            } | Elev: ${elevation_angle.toFixed(
+              2
+            )} deg | Latency: ${latency_ms.toFixed(2)} ms`
+          )
+
+          // Add bidirectional link
+          AdjList.get(gs.name).push({ target: sat.name, weight: latency_ms })
+          AdjList.get(sat.name).push({ target: gs.name, weight: latency_ms })
+          sglCount++
+        } else {
+          // console.log(`[DEBUG: SGL Failure] ${gs.name} <-> ${sat.name} | Elev: ${elevation_angle.toFixed(2)} deg (Too low)`)
+        }
       }
     }
   }
 
-  console.log(`[DEBUG: Graph] Final AdjList size: ${AdjList.size}`) // DEBUG 5
+  console.log(
+    `[DEBUG: Graph] Total SGL links added: ${sglCount * 2} (bidirectional).`
+  )
+  console.log(`[DEBUG: Graph] Final AdjList size: ${AdjList.size}.`)
 
   return AdjList
 }
 
 // ===================================
-// 4. Dijkstra's Shortest Path Algorithm
+// 4. Dijkstra's Shortest Path Algorithm (Detailed Debugging)
 // ===================================
 
 /**
  * Finds the shortest path (minimum latency) from a source to a destination.
- * @param {Map<string, {target: string, weight: number}[]>} AdjList - The graph.
- * @param {string} sourceId - Starting node ID.
- * @param {string} destinationId - Ending node ID.
- * @returns {{path: string[], totalLatency: number}} Path and total cost.
  */
 function dijkstra(AdjList, sourceId, destinationId) {
+  console.log(
+    `[DEBUG: Dijkstra] Starting path search: ${sourceId} -> ${destinationId}`
+  )
   const distances = new Map()
   const parents = new Map()
   const pq = new PriorityQueue()
 
-  if (!AdjList.has(sourceId) || !AdjList.has(destinationId)) {
-    console.warn(
-      `Source (${sourceId}) or Destination (${destinationId}) not found in graph.`
+  if (!AdjList.has(sourceId)) {
+    console.error(
+      `[DEBUG: Dijkstra ERROR] Source node (${sourceId}) not found in graph.`
+    )
+    return { path: [], totalLatency: Infinity }
+  }
+  if (!AdjList.has(destinationId)) {
+    console.error(
+      `[DEBUG: Dijkstra ERROR] Destination node (${destinationId}) not found in graph.`
     )
     return { path: [], totalLatency: Infinity }
   }
@@ -339,24 +454,57 @@ function dijkstra(AdjList, sourceId, destinationId) {
   distances.set(sourceId, 0)
   pq.enqueue(sourceId, 0) // {id, distance}
 
-  while (!pq.isEmpty()) {
-    const { id: u, priority: dist_u } = pq.dequeue()
+  let iterations = 0
 
-    if (u === destinationId) break
+  while (!pq.isEmpty()) {
+    iterations++
+    const result = pq.dequeue()
+    if (!result) break // Should not happen if isEmpty() check is correct
+
+    const { id: u, priority: dist_u } = result
+
+    // console.log(`[DEBUG: Dijkstra] Iteration ${iterations}: Processing node ${u} with distance ${dist_u.toFixed(4)} ms.`)
+
+    if (u === destinationId) {
+      console.log(
+        `[DEBUG: Dijkstra] Destination ${destinationId} reached in ${iterations} iterations.`
+      )
+      break
+    }
 
     // Skip if we found a shorter path to u already (stale entry)
-    if (dist_u > distances.get(u)) continue
+    if (dist_u > distances.get(u)) {
+      // console.log(`[DEBUG: Dijkstra] Skipping stale entry for ${u}.`)
+      continue
+    }
 
     // Relax edges
-    for (const edge of AdjList.get(u)) {
+    const neighbors = AdjList.get(u)
+    if (!neighbors) {
+      console.warn(
+        `[DEBUG: Dijkstra WARNING] Node ${u} has no entry in AdjList or its entry is null/undefined.`
+      )
+      continue
+    }
+
+    for (const edge of neighbors) {
       const v = edge.target
       const weight_uv = edge.weight
+
+      if (isNaN(weight_uv) || weight_uv < 0) {
+        console.error(
+          `[DEBUG: Dijkstra ERROR] Invalid weight (${weight_uv}) for edge ${u} -> ${v}. Skipping relaxation.`
+        )
+        continue
+      }
+
       const newDist = dist_u + weight_uv
 
       if (newDist < distances.get(v)) {
         distances.set(v, newDist)
         parents.set(v, u)
         pq.enqueue(v, newDist)
+        // console.log(`[DEBUG: Dijkstra] Relaxed ${u} -> ${v}. New distance: ${newDist.toFixed(4)} ms.`)
       }
     }
   }
@@ -366,6 +514,12 @@ function dijkstra(AdjList, sourceId, destinationId) {
   let current = destinationId
   let totalLatency = distances.get(destinationId) || Infinity
 
+  console.log(
+    `[DEBUG: Dijkstra] Final calculated distance to ${destinationId}: ${totalLatency.toFixed(
+      2
+    )} ms.`
+  )
+
   while (current !== null && current !== undefined && current !== sourceId) {
     shortestPath.unshift(current)
     current = parents.get(current)
@@ -373,9 +527,19 @@ function dijkstra(AdjList, sourceId, destinationId) {
 
   if (current === sourceId) {
     shortestPath.unshift(sourceId)
+    console.log('[DEBUG: Path Reconstruction] Path successfully reconstructed.')
   } else if (totalLatency === Infinity) {
-    console.warn(`No path found from ${sourceId} to ${destinationId}.`)
+    console.warn(
+      `[DEBUG: Path Reconstruction WARNING] No path found from ${sourceId} to ${destinationId}.`
+    )
     return { path: [], totalLatency: Infinity }
+  } else {
+    // This should ideally not happen if totalLatency is finite and the source was reachable
+    console.error(
+      `[DEBUG: Path Reconstruction ERROR] Failed to backtrack to source ${sourceId}, but totalLatency is finite (${totalLatency.toFixed(
+        2
+      )} ms). Loop terminated at ${current}.`
+    )
   }
 
   return { path: shortestPath, totalLatency: totalLatency }
@@ -387,8 +551,6 @@ function dijkstra(AdjList, sourceId, destinationId) {
 
 /**
  * Executes the full shortest path calculation pipeline.
- * Assumes the main animation loop updates 'today' (current time) and
- * propagates satellite positions (updates r_ECEF).
  */
 function calculateShortestPath(sourceId, destId) {
   shortestPathData.isCalculating = true
@@ -397,12 +559,17 @@ function calculateShortestPath(sourceId, destId) {
   shortestPathData.path = []
   shortestPathData.totalLatency = Infinity
 
-  console.log(
-    `[ShortestPath] Starting calculation from ${sourceId} to ${destId}...`
-  )
+  console.group(`[ShortestPath] CORE CALCULATION: ${sourceId} -> ${destId}`)
+
+  // Check for required global time variable
+  if (typeof today === 'undefined') {
+    console.error(
+      '[ShortestPath ERROR] Global variable "today" (current time) is undefined. Using new Date().'
+    )
+  }
+  const currentTime = typeof today !== 'undefined' ? today : new Date()
 
   // 1. Build the graph (dynamically changes with time)
-  const currentTime = today // Assumes 'today' is the global time Date object
   const AdjList = buildDynamicAdjacencyList(currentTime)
 
   // 2. Run Dijkstra's
@@ -414,8 +581,12 @@ function calculateShortestPath(sourceId, destId) {
   shortestPathData.isCalculating = false
 
   console.log('[ShortestPath] Calculation Complete.')
-  console.log('Path:', shortestPathData.path.join(' -> '))
-  console.log('Latency:', shortestPathData.totalLatency.toFixed(2), 'ms')
+  if (shortestPathData.totalLatency !== Infinity) {
+    console.log('Path:', shortestPathData.path.join(' -> '))
+    console.log('Latency:', shortestPathData.totalLatency.toFixed(2), 'ms')
+  } else {
+    console.log('Path:', 'No Path Found!')
+  }
 
   // Update GUI if available (to display latency)
   if (typeof updatePathDisplayMetrics !== 'undefined') {
@@ -424,6 +595,8 @@ function calculateShortestPath(sourceId, destId) {
       shortestPathData.path.length
     )
   }
+
+  console.groupEnd() // End of CORE CALCULATION group
 
   return shortestPathData
 }
@@ -444,7 +617,6 @@ function handleShortestPathFileUpload(event) {
 
 /**
  * Parses the proposed config file format.
- * Format: Source_ID, Dest_ID (e.g., GS_A, Sat_25544)
  */
 function parseShortestPathConfig(content) {
   const lines = content.split('\n')
@@ -453,9 +625,9 @@ function parseShortestPathConfig(content) {
   const line = lines[0].trim()
   const parts = line.split(',').map((part) => part.trim())
 
-  if (parts.length < 2) {
+  if (parts.length < 2 || !parts[0] || !parts[1]) {
     console.error(
-      'Invalid Shortest Path Config format. Expected: Source_ID, Dest_ID'
+      '[ShortestPath Config ERROR] Invalid Shortest Path Config format. Expected: Source_ID, Dest_ID'
     )
     return
   }
@@ -463,17 +635,21 @@ function parseShortestPathConfig(content) {
   const sourceId = parts[0]
   const destId = parts[1]
 
+  console.log(
+    `[ShortestPath Config] File loaded: Source=${sourceId}, Dest=${destId}`
+  )
+
   // We immediately set the GUI values and calculate
-  if (guiControls && guiControls.pathSource && guiControls.pathDest) {
+  if (
+    typeof guiControls !== 'undefined' &&
+    guiControls.pathSource &&
+    guiControls.pathDest
+  ) {
     guiControls.pathSource = sourceId
     guiControls.pathDest = destId
-    // Force GUI update (optional, depending on dat.GUI structure)
-    // gui.updateDisplay();
+    // gui.updateDisplay(); // Assuming external update call
     calculateShortestPath(sourceId, destId)
   } else {
-    console.log(
-      `Path configuration loaded from file: Source=${sourceId}, Dest=${destId}`
-    )
     calculateShortestPath(sourceId, destId)
   }
 }
@@ -483,8 +659,12 @@ function updatePathDisplayMetrics(latency_ms, hop_count) {
   const latencyElement = document.getElementById('latencyDisplay')
   const hopsElement = document.getElementById('hopCountDisplay')
 
+  const latencyText =
+    latency_ms === Infinity ? 'N/A (No Path)' : `${latency_ms.toFixed(2)} ms`
+  const hopsText = hop_count <= 1 ? 'N/A' : `${hop_count - 1}` // path array includes source and destination
+
   if (latencyElement && hopsElement) {
-    latencyElement.textContent = `Latency: ${latency_ms.toFixed(2)} ms`
-    hopsElement.textContent = `Hops: ${hop_count - 1}` // path array includes source and destination
+    latencyElement.textContent = `Latency: ${latencyText}`
+    hopsElement.textContent = `Hops: ${hopsText}`
   }
 }

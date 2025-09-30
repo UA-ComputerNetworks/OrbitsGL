@@ -107,23 +107,6 @@ function checkIntersectionGroundStations(source, target, radius) {
   return hit
 }
 
-// function isVisibleFromCamera(cameraPos, targetECEF) {
-//   const cameraDir = MathUtils.vecmul(cameraPos, -1) // vector pointing from camera to Earth center
-//   const targetDir = MathUtils.vecsub(targetECEF, [0, 0, 0]) // vector from Earth's center to station
-
-//   const cameraUnit = MathUtils.vecmul(cameraDir, 1 / MathUtils.norm(cameraDir))
-//   const targetUnit = MathUtils.vecmul(targetDir, 1 / MathUtils.norm(targetDir))
-
-//   const dot = MathUtils.dot(cameraUnit, targetUnit)
-
-//   console.log(
-//     `🧠 [Visibility] dot = ${dot.toFixed(4)} (${
-//       dot > 0 ? '✅ Visible' : '⛔ Occluded'
-//     })`
-//   )
-//   return dot > 0
-// }
-
 function isVisibleFromCamera(cameraPos, stationECEF) {
   // Normalize both vectors from Earth center
   const cameraUnit = MathUtils.vecmul(cameraPos, 1 / MathUtils.norm(cameraPos))
