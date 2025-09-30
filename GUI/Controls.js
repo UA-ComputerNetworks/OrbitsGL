@@ -12,8 +12,8 @@ var guiControls = null
  * OSV Controls:
  * - Manages Orbit State Vector (OSV) visualization and real-time data.
  * - Examples:
- *    - Visualizing satellite positions and vectors.
- *    - Displaying orbit paths.
+ * - Visualizing satellite positions and vectors.
+ * - Displaying orbit paths.
  */
 var osvControls = {}
 
@@ -21,8 +21,8 @@ var osvControls = {}
  * Display Controls:
  * - Handles visual components and toggles for GUI elements.
  * - Examples:
- *    - Enabling/disabling grid lines.
- *    - Toggling visibility of satellite paths.
+ * - Enabling/disabling grid lines.
+ * - Toggling visibility of satellite paths.
  */
 var displayControls = {}
 
@@ -30,8 +30,8 @@ var displayControls = {}
  * TLE Controls:
  * - Provides functionalities to upload, manage, and visualize TLE files.
  * - Examples:
- *    - Uploading TLE files by satellite name or catalog number.
- *    - Selecting satellites dynamically for operations.
+ * - Uploading TLE files by satellite name or catalog number.
+ * - Selecting satellites dynamically for operations.
  */
 var tleControls = {}
 
@@ -39,8 +39,8 @@ var tleControls = {}
  * Time Controls:
  * - Controls the simulation time and timewarp functionality.
  * - Examples:
- *    - Pausing or resuming the simulation.
- *    - Adjusting timewarp for faster or slower progression.
+ * - Pausing or resuming the simulation.
+ * - Adjusting timewarp for faster or slower progression.
  */
 var timeControls = {}
 
@@ -48,8 +48,8 @@ var timeControls = {}
  * Camera Controls:
  * - Manages the camera’s behavior, including movement and focus.
  * - Examples:
- *    - Centering on a specific satellite.
- *    - Rotating the view dynamically.
+ * - Centering on a specific satellite.
+ * - Rotating the view dynamically.
  */
 var cameraControls = {}
 
@@ -57,8 +57,8 @@ var cameraControls = {}
  * Frame Controls:
  * - Handles the reference frame for the visualization.
  * - Examples:
- *    - Switching between Earth-centered (ECEF) and inertial frames.
- *    - Changing coordinate systems.
+ * - Switching between Earth-centered (ECEF) and inertial frames.
+ * - Changing coordinate systems.
  */
 var frameControls = {}
 
@@ -66,8 +66,8 @@ var frameControls = {}
  * Kepler Controls:
  * - Displays Keplerian orbital parameters for selected satellites.
  * - Examples:
- *    - Showing semi-major axis, inclination, and eccentricity.
- *    - Visualizing real-time changes in orbital elements.
+ * - Showing semi-major axis, inclination, and eccentricity.
+ * - Visualizing real-time changes in orbital elements.
  */
 var keplerControls = {}
 
@@ -89,6 +89,29 @@ function createControls() {
   )
 
   guiControls = new (function () {
+    // Shortest Path Controls (NEW)
+    this.pathSource = 'GS_Merritt_Island' // Default or placeholder
+    this.pathDest = 'Sat_25544' // Default or placeholder
+    this.calculatePath = function () {
+      // This function will be called by the GUI button
+      if (typeof calculateShortestPath !== 'undefined') {
+        calculateShortestPath(this.pathSource, this.pathDest)
+      } else {
+        console.error('Shortest path calculation function not loaded.')
+      }
+    }
+    this.uploadShortestPathFile = function () {
+      // Create a temporary file input for the configuration file
+      const input = document.createElement('input')
+      input.type = 'file'
+      input.accept = '.txt'
+      input.id = 'ShortestPathFileInput'
+
+      input.addEventListener('change', handleShortestPathFileUpload)
+      input.click()
+    }
+    // End Shortest Path Controls
+
     //this.preset = "Start";
     this.enableOrbit = true
     this.enableGrid = true
@@ -296,7 +319,8 @@ function createControls() {
     this.enableVerboseLogging = false
     this.downloadLogFile = function () {
       if (logBuffer.length === 0) {
-        alert(
+        // Use custom modal or console.error instead of alert
+        console.error(
           'Log buffer is empty. Enable verbose logging first to capture data.'
         )
         return
@@ -314,11 +338,13 @@ function createControls() {
       document.body.removeChild(a)
       URL.revokeObjectURL(url)
       logBuffer = []
-      alert(`Log file downloaded. The log buffer has been cleared.`)
+      // Use custom modal or console.log instead of alert
+      console.log(`Log file downloaded. The log buffer has been cleared.`)
     }
     this.clearLogBuffer = function () {
       logBuffer = []
-      alert('Log buffer cleared.')
+      // Use custom modal or console.log instead of alert
+      console.log('Log buffer cleared.')
     }
   })()
 
@@ -407,9 +433,6 @@ function createControls() {
   displayControls.enableOrbit = displayFolder
     .add(guiControls, 'enableOrbit')
     .name('Orbit Lines')
-  displayControls.enableSun = displayFolder
-    .add(guiControls, 'enableSun')
-    .name('Sun Orbit')
   displayControls.enableList = displayFolder
     .add(guiControls, 'enableList')
     .name('Show List')
@@ -750,20 +773,31 @@ function createControls() {
   osvControls.insertOSV = gui.add(guiControls, 'insertOSV').name('Insert OSV')
   osvControls.exportOSV = gui.add(guiControls, 'exportOSV').name('Export OSV')
 
-  // Add Shortest Path Visualization folder
-  const shortestPathFolder = gui.addFolder('Shortest Path Visualization')
+  // Add Shortest Path Visualization folder (UPDATED)
+  const shortestPathFolder = gui.addFolder('Shortest Path Routing')
 
-  // Add GUI controls for file upload
-  guiControls.uploadShortestPathFile = function () {
-    document.getElementById('ShortestPathFileInput').click() // Trigger file upload directly
-  }
+  // Input fields for Source and Destination IDs
+  shortestPathFolder
+    .add(guiControls, 'pathSource')
+    .name('Source ID (Sat/GS)')
+    .listen()
 
-  // Add options to the GUI
+  shortestPathFolder
+    .add(guiControls, 'pathDest')
+    .name('Dest ID (Sat/GS)')
+    .listen()
+
+  // Button to trigger the calculation
+  shortestPathFolder
+    .add(guiControls, 'calculatePath')
+    .name('Calculate Shortest Path')
+
+  // Add GUI controls for file upload (for batch configuration)
   shortestPathFolder
     .add(guiControls, 'uploadShortestPathFile')
-    .name('Upload Shortest Path File')
+    .name('Upload Path Config (.txt)')
 
-  // ========== Ground Station Upload ==========
+  // ========== Ground Station Upload (No changes needed, keeping original code) ==========
 
   // Hidden file input trigger via GUI
   guiControls.uploadGroundStationFile = function () {
@@ -841,6 +875,16 @@ function resetAllData() {
   }
 
   // Shortest Path
+  // UPDATED reset logic for new shortestPathData structure
+  if (typeof shortestPathData !== 'undefined') {
+    shortestPathData.path = []
+    shortestPathData.totalLatency = Infinity
+    shortestPathData.sourceId = null
+    shortestPathData.destId = null
+    shortestPathData.isCalculating = false
+  }
+
+  // Clean up old or unused variables
   if (typeof shortestPaths !== 'undefined') shortestPaths = []
   if (typeof currentShortestPathIndex !== 'undefined')
     currentShortestPathIndex = -1
@@ -853,6 +897,7 @@ function resetAllData() {
   if (tleInput) tleInput.value = ''
 
   // Shortest Path Inputs (optional, if present)
+  // The ShortestPathFileInput is dynamically created, so this is mostly legacy.
   const pathInput = document.getElementById('ShortestPathFileInput')
   if (pathInput) pathInput.value = ''
 
