@@ -236,8 +236,6 @@ function checkEarthOcclusion(posA_ECEF, posB_ECEF) {
   return false
 }
 
-// Note: calculateElevation is assumed to be available from GroundStations.js
-
 // ===================================
 // 3. Graph Construction (Detailed Debugging)
 // ===================================
@@ -418,7 +416,7 @@ function buildDynamicAdjacencyList(currentTime) {
 }
 
 // ===================================
-// 4. Dijkstra's Shortest Path Algorithm (Detailed Debugging)
+// 4. Dijkstra's Shortest Path Algorithm
 // ===================================
 
 /**
