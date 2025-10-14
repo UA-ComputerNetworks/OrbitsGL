@@ -732,115 +732,92 @@ function updatePathDisplayMetrics(latency_ms, hop_count) {
     hopsElement.textContent = `Hops: ${hopsText}`
   }
 }
-
-// ===============================================
-// New Function: Shortest Path Visualization Bridge
-// ===============================================
-
 /**
- * [visualizeShortestPaths] - Bridge function to check the global shortest path
- * data and trigger the drawing function if a valid path exists.
- *
- * This function must be called in the main drawScene loop.
+ * [visualizeShortestPaths] - Renders the shortest path segments and highlights the nodes.
+ * * This version uses createOsvForSatellite to ensure all satellite nodes have
+ * a consistently rendered J2000 OSV before drawing.
  *
  * @param {Object} matrix - The view-projection matrix for rendering.
  * @param {Object} nutPar - Nutation parameters for coordinate transformation.
  * @param {Date} today - The current simulation timestamp.
  */
 function visualizeShortestPaths2(matrix, nutPar, today) {
-  // Check if the global shortestPathData object (from New_shortest_path.js) is available
+  // Check for valid path data
   if (
     typeof shortestPathData === 'undefined' ||
     !shortestPathData.path ||
     shortestPathData.path.length < 2 ||
     shortestPathData.totalLatency === Infinity
   ) {
-    // No valid path to draw
     return
   }
 
   const path = shortestPathData.path
-
-  // Use a distinct color for the shortest path visualization (e.g., bright orange)
-  const highlightColor = [255, 165, 0]
-  const satelliteScale = 0.01
+  const highlightColor = [255, 165, 0] // Orange line
+  const satelliteMarkerColor = [255, 255, 0] // Yellow marker
+  const markerScale = 0.015
   const lineThickness = 5.0
-  const pathPoints = []
+  const pathPointsKm = [] // Stores ECEF positions in KM for line drawing
 
-  log(
-    `[ShortestPath Viz] Drawing path with ${
-      path.length
-    } nodes (Latency: ${shortestPathData.totalLatency.toFixed(2)} ms)`
-  )
+  // ----------------------------------------------------
+  // 1. Process and Draw Satellite Markers / Get GS Positions
+  // ----------------------------------------------------
 
   for (let i = 0; i < path.length; i++) {
     const nodeName = path[i]
     let posECEF_km = null
-    let nodeObject = null
 
-    // --- 1. Identify Node Type (Satellite or Ground Station) ---
+    const sat = satelliteObjects[nodeName]
+    const gs = uploadedGroundStations.find((g) => g.name === nodeName)
 
-    // Check Satellites (using the globally updated satelliteObjects)
-    if (satelliteObjects[nodeName]) {
-      nodeObject = satelliteObjects[nodeName]
-      // Ensure satellite has current OSV, which should be updated by updateAllSatelliteECEF()
-      if (nodeObject.r_ECEF) {
-        posECEF_km = nodeObject.r_ECEF
+    if (sat && sat.satrec) {
+      // --- Case A: Satellite Node ---
+
+      // 🚨 CRITICAL FIX: Ensure the satellite's OSV is correctly set up in J2000 (meters)
+      // for the drawSatellite function to work. This runs the full propagation.
+      // NOTE: This call updates sat.osvProp internally.
+      createOsvForSatellite(sat, today)
+
+      // Get the ECEF position from the field updated by updateAllSatelliteECEF
+      posECEF_km = sat.r_ECEF
+
+      if (posECEF_km) {
+        // Highlight the satellite using the now-updated sat.osvProp
+        // The drawSatellite function will perform the final J2000->ECEF conversion internally.
+        drawSatellite(sat, matrix, nutPar, satelliteMarkerColor, markerScale)
       }
+    } else if (gs && gs.positionECEF) {
+      // --- Case B: Ground Station Node ---
+      posECEF_km = gs.positionECEF // ECEF is already in KM
+
+      // We rely on the unmodified drawUploadedGroundStationsCustom loop to draw this marker.
     }
 
-    // Check Ground Stations (using the globally uploadedGroundStations)
-    else if (uploadedGroundStations.find((gs) => gs.name === nodeName)) {
-      nodeObject = uploadedGroundStations.find((gs) => gs.name === nodeName)
-      if (nodeObject.positionECEF) {
-        posECEF_km = nodeObject.positionECEF
-      }
-    }
-
-    // Fallback/Error Check
-    if (!posECEF_km) {
-      log(
-        `[ShortestPath Viz ERROR] Missing ECEF position for node: ${nodeName}. Skipping visualization.`
+    if (posECEF_km) {
+      pathPointsKm.push(posECEF_km) // Store position in KM for the line drawing
+    } else {
+      console.warn(
+        `[ShortestPath Viz ERROR] Missing position for node: ${nodeName}. Path visualization may be broken.`
       )
-      continue
     }
-
-    // --- 2. Draw Node Marker (Satellite/GS) ---
-    // Note: The position is already in ECEF, so we use it directly.
-    drawSatellite(
-      {
-        osvProp: {
-          r: MathUtils.vecmul(posECEF_km, 1000.0), // Needs meters for drawSatellite's logic
-          v: [0, 0, 0],
-          ts: today,
-        },
-      },
-      matrix,
-      nutPar,
-      highlightColor,
-      satelliteScale // Use a small marker size
-    )
-
-    // Prepare point for line drawing
-    pathPoints.push(posECEF_km)
   }
 
-  // --- 3. Draw Connecting Lines (Path) ---
-  if (pathPoints.length >= 2) {
+  // ----------------------------------------------------
+  // 2. Draw Connecting Lines (Segments in KM)
+  // ----------------------------------------------------
+
+  if (pathPointsKm.length >= 2) {
     const lineSegments = []
-    // Create segments: [A, B], [B, C], [C, D], etc.
-    for (let i = 0; i < pathPoints.length - 1; i++) {
-      // The lineShaders.setGeometry expects a flat array of points in km.
-      lineSegments.push(pathPoints[i])
-      lineSegments.push(pathPoints[i + 1])
+
+    // Flatten the array of [start_km, end_km] segment points
+    for (let i = 0; i < pathPointsKm.length - 1; i++) {
+      // Add point A and point B (both are ECEF coordinates in KM)
+      lineSegments.push(pathPointsKm[i])
+      lineSegments.push(pathPointsKm[i + 1])
     }
 
-    lineShaders.setStyle(lineThickness, 'solid')
-    // SetGeometry expects an array of points, which are arrays of ECEF coordinates
+    // setGeometry expects an array of points, which are arrays of ECEF coordinates in KM
     lineShaders.setGeometry(lineSegments, highlightColor)
     lineShaders.draw(matrix)
-    log(
-      `[ShortestPath Viz] Successfully drew ${path.length - 1} line segments.`
-    )
   }
 }

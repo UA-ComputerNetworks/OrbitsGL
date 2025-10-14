@@ -493,7 +493,6 @@ function drawScene(time) {
   requestAnimationFrame(drawScene)
 
   drawISLLines(matrix, nutPar, today)
-  visualizeShortestPaths2(matrix, nutPar, today)
 
   // For groundStations visualisation.
 
@@ -507,6 +506,8 @@ function drawScene(time) {
 
   drawUploadedGroundStationsCustom(matrix, nutPar, today)
   drawGroundToSatelliteLinks(matrix, nutPar, today)
+
+  visualizeShortestPaths2(matrix, nutPar, today)
 
   drawing = false
 }
