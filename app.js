@@ -493,7 +493,7 @@ function drawScene(time) {
   requestAnimationFrame(drawScene)
 
   drawISLLines(matrix, nutPar, today)
-  visualizeShortestPaths(matrix, nutPar, today)
+  visualizeShortestPaths2(matrix, nutPar, today)
 
   // For groundStations visualisation.
 
@@ -1125,7 +1125,19 @@ function drawSatellite(
  *      The current timestamp for ISL visualization.
  */
 function drawISLLines(matrix, nutPar, today) {
-  const highlightColor1 = [255, 255, 0] // Green for one end
+  const highlightColor1 = [47, 79, 79] // Green for one end
+
+  // Colors.
+
+  //   # 1. Dark Gray — a neutral, balanced shade used for backgrounds.
+  // dark_gray = (64, 64, 64)        # RGB(64, 64, 64)
+
+  // # --------------------------------------------------------------
+  // # 2. Charcoal — slightly deeper than dark gray, with a soft, cool tone.
+  // charcoal = (54, 69, 79)         # RGB(54, 69, 79)
+
+  // # 5. Dark Slate Gray — a dark mix of blue, green, and gray tones.
+  // dark_slate_gray = (47, 79, 79)  # RGB(47, 79, 79)
 
   const satelliteScale = 0.01 // Scale to avoid oversized satellites
   const lineThickness = 3.0 // Adjust line thickness
@@ -1156,7 +1168,7 @@ function drawISLLines(matrix, nutPar, today) {
         [x2, y2, z2],
       ]
 
-      const color = [255, 0, 0] // Red for ISL lines
+      const color = [255, 51, 51] // Red for ISL lines
 
       lineShaders.setStyle(5, 'solid') // Sets the line thickness to 5.0
       lineShaders.setGeometry(linePoints, color)
