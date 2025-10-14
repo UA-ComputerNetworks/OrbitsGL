@@ -732,17 +732,15 @@ function updatePathDisplayMetrics(latency_ms, hop_count) {
     hopsElement.textContent = `Hops: ${hopsText}`
   }
 }
+
 /**
  * [visualizeShortestPaths] - Renders the shortest path segments and highlights the nodes.
- * * This version uses createOsvForSatellite to ensure all satellite nodes have
- * a consistently rendered J2000 OSV before drawing.
  *
  * @param {Object} matrix - The view-projection matrix for rendering.
  * @param {Object} nutPar - Nutation parameters for coordinate transformation.
  * @param {Date} today - The current simulation timestamp.
  */
 function visualizeShortestPaths2(matrix, nutPar, today) {
-  // Check for valid path data
   if (
     typeof shortestPathData === 'undefined' ||
     !shortestPathData.path ||
@@ -753,44 +751,56 @@ function visualizeShortestPaths2(matrix, nutPar, today) {
   }
 
   const path = shortestPathData.path
-  const highlightColor = [255, 165, 0] // Orange line
-  const satelliteMarkerColor = [255, 255, 0] // Yellow marker
-  const markerScale = 0.015
+
+  // Custom Colors for Visualization
+  const lineColor = [255, 165, 0] // Orange for connecting lines
+  const sourceColor = [0, 255, 0] // Green for Source node
+  const destColor = [255, 0, 0] // Red for Destination node
+  const intermediateColor = [255, 255, 0] // Yellow for intermediate nodes
+
+  const markerScale = 0.009
   const lineThickness = 5.0
-  const pathPointsKm = [] // Stores ECEF positions in KM for line drawing
+  const pathPointsKm = []
+
+  const sourceId = path[0]
+  const destId = path[path.length - 1]
 
   // ----------------------------------------------------
-  // 1. Process and Draw Satellite Markers / Get GS Positions
+  // 1. Process and Draw Highlighted Markers (Satellites and GS)
   // ----------------------------------------------------
 
   for (let i = 0; i < path.length; i++) {
     const nodeName = path[i]
     let posECEF_km = null
+    let highlightColor
+
+    // Determine color based on position in the path
+    if (nodeName === sourceId) {
+      highlightColor = sourceColor
+    } else if (nodeName === destId) {
+      highlightColor = destColor
+    } else {
+      highlightColor = intermediateColor
+    }
 
     const sat = satelliteObjects[nodeName]
     const gs = uploadedGroundStations.find((g) => g.name === nodeName)
 
     if (sat && sat.satrec) {
       // --- Case A: Satellite Node ---
-
-      // 🚨 CRITICAL FIX: Ensure the satellite's OSV is correctly set up in J2000 (meters)
-      // for the drawSatellite function to work. This runs the full propagation.
-      // NOTE: This call updates sat.osvProp internally.
       createOsvForSatellite(sat, today)
-
-      // Get the ECEF position from the field updated by updateAllSatelliteECEF
       posECEF_km = sat.r_ECEF
 
       if (posECEF_km) {
-        // Highlight the satellite using the now-updated sat.osvProp
-        // The drawSatellite function will perform the final J2000->ECEF conversion internally.
-        drawSatellite(sat, matrix, nutPar, satelliteMarkerColor, markerScale)
+        // Draw Satellite Marker (using J2000 OSV in meters, as required)
+        drawSatellite(sat, matrix, nutPar, highlightColor, markerScale)
       }
     } else if (gs && gs.positionECEF) {
       // --- Case B: Ground Station Node ---
       posECEF_km = gs.positionECEF // ECEF is already in KM
 
-      // We rely on the unmodified drawUploadedGroundStationsCustom loop to draw this marker.
+      // Draw GS Marker using the dedicated helper for custom coloring/scaling
+      drawSingleGroundStation(matrix, gs, highlightColor, markerScale)
     }
 
     if (posECEF_km) {
@@ -809,15 +819,34 @@ function visualizeShortestPaths2(matrix, nutPar, today) {
   if (pathPointsKm.length >= 2) {
     const lineSegments = []
 
-    // Flatten the array of [start_km, end_km] segment points
     for (let i = 0; i < pathPointsKm.length - 1; i++) {
-      // Add point A and point B (both are ECEF coordinates in KM)
       lineSegments.push(pathPointsKm[i])
       lineSegments.push(pathPointsKm[i + 1])
     }
 
-    // setGeometry expects an array of points, which are arrays of ECEF coordinates in KM
-    lineShaders.setGeometry(lineSegments, highlightColor)
+    // Using the line color set previously
+    lineShaders.setGeometry(lineSegments, lineColor)
     lineShaders.draw(matrix)
   }
+}
+
+/**
+ * [drawSingleGroundStation] - Draws a single ground station point with custom color and scale.
+ * This is used specifically for highlighting nodes in the shortest path visualization.
+ *
+ * @param {Object} matrix - View matrix
+ * @param {Object} gsObject - The ground station object (e.g., from uploadedGroundStations)
+ * @param {Array} color - The custom highlight color [R, G, B].
+ * @param {Number} scale - The scaling factor for the marker.
+ */
+function drawSingleGroundStation(matrix, gsObject, color, scale) {
+  const [x, y, z] = gsObject.positionECEF // Already ECEF computed in KM
+
+  // Create matrix for point position and scale (using KM input)
+  let stationMatrix = m4.translate(matrix, x, y, z)
+  stationMatrix = m4.scale(stationMatrix, scale, scale, scale)
+
+  // Draw using the same low-level method as the original GS function
+  earthShaders.setSatelliteColor(color[0], color[1], color[2])
+  earthShaders.draw(stationMatrix, 0, 0, LST, false, false, false, color)
 }
